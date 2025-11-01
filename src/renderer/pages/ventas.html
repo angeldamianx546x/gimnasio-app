@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gimnasio - Ventas</title>
+    <link rel="stylesheet" href="../css/main.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-left">
+                <h1>💪 Gimnasio Manager - Ventas</h1>
+            </div>
+            <div class="header-right">
+                <span class="user-info" id="userInfo">Cargando...</span>
+                <button class="logout-btn" id="logoutBtn">Cerrar Sesión</button>
+            </div>
+        </header>
+
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <nav class="nav-menu">
+                <a href="#" class="nav-item" data-page="dashboard">📊 Dashboard</a>
+                <a href="#" class="nav-item active" data-page="ventas">🛒 Ventas</a>
+                <a href="#" class="nav-item" data-page="productos" id="productosNav">📦 Productos</a>
+                <a href="#" class="nav-item" data-page="clientes">👥 Clientes</a>
+                <a href="#" class="nav-item" data-page="acceso">🔐 Control Acceso</a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="ventas-container">
+                <div class="ventas-header">
+                    <h2>🛒 Punto de Venta</h2>
+                    <div class="venta-info">
+                        <span>Vendedor: <strong id="vendedorNombre"></strong></span>
+                        <span>Fecha: <strong id="fechaVenta"></strong></span>
+                    </div>
+                </div>
+
+                <div class="ventas-grid">
+                    <!-- Productos Disponibles -->
+                    <div class="productos-panel">
+                        <h3>Productos Disponibles</h3>
+                        <div class="productos-search">
+                            <input type="text" id="searchProductos" placeholder="Buscar productos...">
+                        </div>
+                        <div class="productos-list" id="productosDisponibles">
+                            <p class="loading">Cargando productos...</p>
+                        </div>
+                    </div>
+
+                    <!-- Carrito de Compras -->
+                    <div class="carrito-panel">
+                        <h3>Carrito de Compras</h3>
+                        <div class="carrito-items" id="carritoItems">
+                            <p class="carrito-vacio">El carrito está vacío</p>
+                        </div>
+                        
+                        <div class="carrito-total">
+                            <div class="total-line">
+                                <span>Subtotal:</span>
+                                <span id="subtotal">$0.00</span>
+                            </div>
+                            <div class="total-line total-final">
+                                <span>Total:</span>
+                                <span id="total">$0.00</span>
+                            </div>
+                        </div>
+
+                        <div class="carrito-actions">
+                            <button class="btn-secondary" id="limpiarCarrito">Limpiar</button>
+                            <button class="btn-primary" id="procesarVenta" disabled>Procesar Venta</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal de Confirmación -->
+    <div class="modal" id="confirmarVentaModal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Confirmar Venta</h3>
+                <button class="modal-close" id="cerrarModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>¿Confirmas la venta por un total de <strong id="totalConfirmar">$0.00</strong>?</p>
+                <div class="venta-resumen" id="ventaResumen"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="cancelarVenta">Cancelar</button>
+                <button class="btn-primary" id="confirmarVenta">Confirmar Venta</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/ventas.js"></script>
+</body>
+</html>

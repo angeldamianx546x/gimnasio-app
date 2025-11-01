@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gimnasio - Dashboard</title>
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-left">
+                <h1>💪 Gimnasio Manager</h1>
+            </div>
+            <div class="header-right">
+                <span class="user-info" id="userInfo">Cargando...</span>
+                <button class="logout-btn" id="logoutBtn">Cerrar Sesión</button>
+            </div>
+        </header>
+
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <nav class="nav-menu">
+                <a href="#" class="nav-item active" data-page="dashboard">
+                    📊 Dashboard
+                </a>
+                <a href="#" class="nav-item" data-page="ventas">
+                    🛒 Ventas
+                </a>
+                <a href="#" class="nav-item" data-page="productos" id="productosNav">
+                    📦 Productos
+                </a>
+                <a href="#" class="nav-item" data-page="clientes">
+                    👥 Clientes
+                </a>
+                <a href="#" class="nav-item" data-page="acceso">
+                    🔐 Control Acceso
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="dashboard-grid">
+                <!-- Estadísticas Rápidas -->
+                <div class="stats-container">
+                    <div class="stat-card">
+                        <div class="stat-icon">💰</div>
+                        <div class="stat-info">
+                            <h3>Ventas Hoy</h3>
+                            <p class="stat-number" id="ventasHoy">$0</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">👥</div>
+                        <div class="stat-info">
+                            <h3>Clientes Activos</h3>
+                            <p class="stat-number" id="clientesActivos">0</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">📦</div>
+                        <div class="stat-info">
+                            <h3>Productos en Stock</h3>
+                            <p class="stat-number" id="productosStock">0</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">🏃</div>
+                        <div class="stat-info">
+                            <h3>Accesos Hoy</h3>
+                            <p class="stat-number" id="accesosHoy">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Acciones Rápidas -->
+                <div class="quick-actions">
+                    <h2>Acciones Rápidas</h2>
+                    <div class="actions-grid">
+                        <button class="action-btn" data-action="nueva-venta">
+                            🛒 Nueva Venta
+                        </button>
+                        <button class="action-btn" data-action="nuevo-cliente">
+                            👤 Nuevo Cliente
+                        </button>
+                        <button class="action-btn" data-action="verificar-acceso">
+                            🔍 Verificar Acceso
+                        </button>
+                        <button class="action-btn" data-action="inventario" id="inventarioBtn">
+                            📋 Gestionar Inventario
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Actividad Reciente -->
+                <div class="recent-activity">
+                    <h2>Actividad Reciente</h2>
+                    <div class="activity-list" id="activityList">
+                        <p class="no-activity">No hay actividad reciente</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="../js/dashboard.js"></script>
+</body>
+</html>

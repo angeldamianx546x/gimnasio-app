@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gimnasio - Iniciar Sesión</title>
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/login.css">
+</head>
+<body class="login-body">
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <div class="gym-icon">💪</div>
+                <h1>Gimnasio Manager</h1>
+                <p>Sistema de Gestión</p>
+            </div>
+            
+            <form class="login-form" id="loginForm">
+                <div class="form-group">
+                    <label for="username">Usuario</label>
+                    <input 
+                        type="text" 
+                        id="username" 
+                        name="username" 
+                        required 
+                        placeholder="Ingresa tu usuario"
+                        autocomplete="username"
+                    >
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Contraseña</label>
+                    <input 
+                        type="password" 
+                        id="password" 
+                        name="password" 
+                        required 
+                        placeholder="Ingresa tu contraseña"
+                        autocomplete="current-password"
+                    >
+                </div>
+                
+                <button type="submit" class="login-btn" id="loginBtn">
+                    <span class="btn-text">Iniciar Sesión</span>
+                    <span class="btn-loading" style="display: none;">Verificando...</span>
+                </button>
+            </form>
+            
+            <div class="login-footer">
+                <p>Sistema desarrollado para gimnasios</p>
+            </div>
+        </div>
+        
+        <!-- Mensaje de error -->
+        <div class="error-message" id="errorMessage" style="display: none;">
+            <span id="errorText"></span>
+        </div>
+    </div>
+
+    <script src="../js/login.js"></script>
+</body>
+</html>
