@@ -1,4 +1,4 @@
-// Sistema de login
+// src/renderer/js/login.js
 const { ipcRenderer } = require('electron');
 
 class LoginManager {
@@ -9,13 +9,12 @@ class LoginManager {
     init() {
         this.bindEvents();
         this.focusUsername();
+        this.showCredentials();
     }
 
     bindEvents() {
         const loginForm = document.getElementById('loginForm');
-        const loginBtn = document.getElementById('loginBtn');
 
-        // Evento de submit del formulario
         loginForm.addEventListener('submit', (e) => {
             e.preventDefault();
             this.handleLogin();
@@ -24,6 +23,7 @@ class LoginManager {
         // Enter en los campos
         document.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
+                e.preventDefault();
                 this.handleLogin();
             }
         });
@@ -51,17 +51,21 @@ class LoginManager {
         this.setLoadingState(true);
 
         try {
-            // Simular autenticación (por ahora)
-            const result = await this.authenticateUser(username, password);
+            // Intentar autenticación con la base de datos
+            const result = await ipcRenderer.invoke('login-success', {
+                username: username,
+                password: password
+            });
             
             if (result.success) {
-                await this.handleLoginSuccess(result.user);
+                console.log('Login exitoso:', result.user.nombre);
+                // El main.js ya cargará el dashboard
             } else {
-                this.showError(result.message);
+                this.showError(result.message || 'Error de autenticación');
             }
         } catch (error) {
             console.error('Error en login:', error);
-            this.showError('Error de conexión. Intenta nuevamente.');
+            this.showError('Error de conexión con la base de datos. Verifica que MySQL esté ejecutándose.');
         } finally {
             this.setLoadingState(false);
         }
@@ -89,50 +93,6 @@ class LoginManager {
         }
 
         return isValid;
-    }
-
-    async authenticateUser(username, password) {
-        // Por ahora, usuarios hardcodeados para testing
-        // Luego conectaremos con la base de datos MySQL
-        const usuarios = {
-            'admin': { password: 'admin123', tipo: 'jefe', nombre: 'Administrador' },
-            'empleado1': { password: 'emp123', tipo: 'empleado', nombre: 'Juan Pérez' },
-            'vendedor': { password: 'vend123', tipo: 'empleado', nombre: 'María García' }
-        };
-
-        // Simular delay de red
-        await this.delay(1000);
-
-        const user = usuarios[username.toLowerCase()];
-        
-        if (!user) {
-            return { success: false, message: 'Usuario no encontrado' };
-        }
-
-        if (user.password !== password) {
-            return { success: false, message: 'Contraseña incorrecta' };
-        }
-
-        return {
-            success: true,
-            user: {
-                id: Math.floor(Math.random() * 1000),
-                username: username,
-                nombre: user.nombre,
-                tipo: user.tipo,
-                loginTime: new Date().toISOString()
-            }
-        };
-    }
-
-    async handleLoginSuccess(userData) {
-        // Enviar datos del usuario al proceso principal
-        const result = await ipcRenderer.invoke('login-success', userData);
-        
-        if (result.success) {
-            // El main.js ya cargará el dashboard
-            console.log('Login exitoso:', userData);
-        }
     }
 
     setLoadingState(loading) {
@@ -211,8 +171,13 @@ class LoginManager {
         }
     }
 
-    delay(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
+    showCredentials() {
+        console.log('IMPORTANTE:');
+        console.log('1. MySQL debe estar ejecutándose en el puerto 3306');
+        console.log('2. La base de datos "gimnasio" debe existir');
+        console.log('3. El usuario root no debe tener contraseña');
+        console.log('4. Ejecuta el script SQL proporcionado para crear las tablas');
+        console.log('===============================');
     }
 }
 
@@ -220,10 +185,3 @@ class LoginManager {
 document.addEventListener('DOMContentLoaded', () => {
     new LoginManager();
 });
-
-// Credenciales de prueba para desarrollo
-console.log('=== CREDENCIALES DE PRUEBA ===');
-console.log('Admin: admin / admin123');
-console.log('Empleado: empleado1 / emp123');
-console.log('Vendedor: vendedor / vend123');
-console.log('===============================');

@@ -1,13 +1,20 @@
+// src/main.js
 const { app, BrowserWindow, Menu, ipcMain } = require("electron");
 const path = require("path");
+
+// Importar servicios de base de datos
+const { initDatabase, closeDatabase } = require("../config/database");
+const AuthService = require("./utils/auth");
+const ProductosService = require("./utils/productos");
+const SociosService = require("./utils/socios");
 
 // Variables globales
 let mainWindow;
 let currentUser = null;
+let isDbConnected = false;
 
 // Función para crear la ventana principal
 function createWindow() {
-  // Crear la ventana del navegador
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
@@ -18,47 +25,29 @@ function createWindow() {
       contextIsolation: false,
       enableRemoteModule: true,
     },
-    icon: path.join(__dirname, "../assets/icons/gym-icon.png"), // Lo crearemos después
-    show: false, // No mostrar hasta que esté listo
+    show: false,
     titleBarStyle: "default",
   });
 
-  // Cargar la página de login inicialmente
   mainWindow.loadFile(path.join(__dirname, "renderer/pages/login.html"));
 
-  // Mostrar ventana cuando esté lista
   mainWindow.once("ready-to-show", () => {
     mainWindow.show();
-
-    // Abrir DevTools en desarrollo
-    // Configurar el entorno de desarrollo
-    if (process.env.NODE_ENV === "development") {
-      // Comentar por ahora electron-reload hasta que tengamos más archivos
-      /*
-  require('electron-reload')(__dirname, {
-    electron: path.join(__dirname, '..', 'node_modules', '.bin', 'electron'),
-    hardResetMethod: 'exit'
-  });
-  */
-    }
   });
 
-  // Evento cuando se cierra la ventana
   mainWindow.on("closed", () => {
     mainWindow = null;
   });
 
-  // Prevenir navegación externa
   mainWindow.webContents.on("will-navigate", (event, navigationUrl) => {
     const parsedUrl = new URL(navigationUrl);
-
     if (parsedUrl.origin !== "file://") {
       event.preventDefault();
     }
   });
 }
 
-// Función para crear el menú de la aplicación
+// Función para crear el menú
 function createMenu() {
   const template = [
     {
@@ -67,19 +56,13 @@ function createMenu() {
         {
           label: "Cerrar Sesión",
           accelerator: "CmdOrCtrl+Q",
-          click: () => {
-            logout();
-          },
+          click: () => logout(),
         },
-        {
-          type: "separator",
-        },
+        { type: "separator" },
         {
           label: "Salir",
           accelerator: process.platform === "darwin" ? "Cmd+Q" : "Ctrl+Q",
-          click: () => {
-            app.quit();
-          },
+          click: () => app.quit(),
         },
       ],
     },
@@ -89,26 +72,18 @@ function createMenu() {
         {
           label: "Recargar",
           accelerator: "CmdOrCtrl+R",
-          click: () => {
-            mainWindow.webContents.reload();
-          },
+          click: () => mainWindow.webContents.reload(),
         },
         {
           label: "Pantalla Completa",
           accelerator: "F11",
-          click: () => {
-            mainWindow.setFullScreen(!mainWindow.isFullScreen());
-          },
+          click: () => mainWindow.setFullScreen(!mainWindow.isFullScreen()),
         },
-        {
-          type: "separator",
-        },
+        { type: "separator" },
         {
           label: "Herramientas de Desarrollador",
           accelerator: "F12",
-          click: () => {
-            mainWindow.webContents.toggleDevTools();
-          },
+          click: () => mainWindow.webContents.toggleDevTools(),
         },
       ],
     },
@@ -118,13 +93,12 @@ function createMenu() {
         {
           label: "Acerca de",
           click: () => {
-            // Mostrar información de la app
             const { dialog } = require("electron");
             dialog.showMessageBox(mainWindow, {
               type: "info",
               title: "Acerca de Gimnasio App",
               message: "Sistema de Gestión para Gimnasio",
-              detail: "Versión 1.0.0\nDesarrollado con Electron y MySQL",
+              detail: `Versión 1.0.0\nConectado a MySQL\nEstado BD: ${isDbConnected ? 'Conectado ✅' : 'Desconectado ❌'}`,
             });
           },
         },
@@ -136,58 +110,108 @@ function createMenu() {
   Menu.setApplicationMenu(menu);
 }
 
-// Eventos del ciclo de vida de la aplicación
-app.whenReady().then(() => {
-  createWindow();
-  createMenu();
+// Función para cerrar sesión
+function logout() {
+  if (currentUser) {
+    AuthService.logoutUser(currentUser.id).catch(err => 
+      console.error('Error al registrar logout:', err)
+    );
+  }
+  
+  currentUser = null;
+  
+  if (mainWindow) {
+    mainWindow.webContents.session.clearStorageData();
+    mainWindow.loadFile(path.join(__dirname, "renderer/pages/login.html"));
+  }
+  
+  console.log("Sesión cerrada correctamente");
+}
 
-  // En macOS, recrear ventana cuando se hace clic en el dock
-  app.on("activate", () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-      createWindow();
-    }
-  });
+// Inicializar la aplicación
+app.whenReady().then(async () => {
+  try {
+    // Inicializar base de datos
+    await initDatabase();
+    isDbConnected = true;
+    console.log("✅ Base de datos inicializada");
+    
+    // Crear usuario admin por defecto
+    await AuthService.createDefaultAdmin();
+    
+    createWindow();
+    createMenu();
+
+    app.on("activate", () => {
+      if (BrowserWindow.getAllWindows().length === 0) {
+        createWindow();
+      }
+    });
+  } catch (error) {
+    console.error("❌ Error al inicializar la aplicación:", error);
+    
+    const { dialog } = require("electron");
+    dialog.showErrorBox(
+      "Error de Base de Datos",
+      `No se pudo conectar con MySQL.\n\nAsegúrate de que:\n1. MySQL está ejecutándose en el puerto 3306\n2. La base de datos 'gimnasio' existe\n3. El usuario 'root' no tiene contraseña\n\nError: ${error.message}`
+    );
+    
+    app.quit();
+  }
 });
 
 // Salir cuando todas las ventanas estén cerradas
 app.on("window-all-closed", () => {
-  // En macOS, mantener la app activa hasta que el usuario salga explícitamente
   if (process.platform !== "darwin") {
     app.quit();
   }
 });
 
-// Función para cerrar sesión
-function logout() {
-  currentUser = null;
-  if (mainWindow) {
-    // Limpiar cualquier dato en memoria
-    mainWindow.webContents.session.clearStorageData();
-    
-    // Cargar la página de login
-    mainWindow.loadFile(path.join(__dirname, 'renderer/pages/login.html'));
+// Cerrar conexión de base de datos al salir
+app.on("before-quit", async (event) => {
+  if (isDbConnected) {
+    event.preventDefault();
+    await closeDatabase();
+    app.exit();
   }
-  
-  console.log('Sesión cerrada correctamente');
-}
-
-// Comunicación IPC (Inter-Process Communication) con el renderer
-// Estos son los "puentes" entre el proceso principal y las páginas
-
-// Login exitoso
-ipcMain.handle("login-success", async (event, userData) => {
-  currentUser = userData;
-  // Cargar dashboard después del login
-  mainWindow.loadFile(path.join(__dirname, "renderer/pages/dashboard.html"));
-  return { success: true };
 });
 
-// Obtener usuario actual
-ipcMain.handle("get-current-user", async (event) => {
+// ============================================================
+// HANDLERS IPC - Autenticación
+// ============================================================
+
+ipcMain.handle("login-success", async (event, userData) => {
+  try {
+    const result = await AuthService.authenticateUser(
+      userData.username, 
+      userData.password
+    );
+    
+    if (result.success) {
+      currentUser = result.user;
+      mainWindow.loadFile(path.join(__dirname, "renderer/pages/dashboard.html"));
+    }
+    
+    return result;
+  } catch (error) {
+    console.error("Error en login:", error);
+    return { success: false, message: "Error al autenticar" };
+  }
+});
+
+ipcMain.handle("get-current-user", async () => {
   return currentUser;
 });
 
-// Navegar entre páginas
+ipcMain.handle("logout", async () => {
+  logout();
+  return { success: true };
+});
+
+// ============================================================
+// HANDLERS IPC - Navegación
+// ============================================================
+
 ipcMain.handle("navigate-to", async (event, page) => {
   const validPages = ["dashboard", "ventas", "productos", "clientes", "acceso"];
 
@@ -199,30 +223,111 @@ ipcMain.handle("navigate-to", async (event, page) => {
   return { success: false, error: "Página no válida" };
 });
 
-// Minimizar ventana
-ipcMain.handle("minimize-window", async (event) => {
-  if (mainWindow) {
-    mainWindow.minimize();
+// ============================================================
+// HANDLERS IPC - Productos
+// ============================================================
+
+ipcMain.handle("get-productos", async () => {
+  try {
+    return await ProductosService.getAllProducts();
+  } catch (error) {
+    console.error("Error al obtener productos:", error);
+    return { success: false, message: "Error al cargar productos" };
   }
 });
 
-// Maximizar/restaurar ventana
-ipcMain.handle("toggle-maximize", async (event) => {
-  if (mainWindow) {
-    if (mainWindow.isMaximized()) {
-      mainWindow.restore();
-    } else {
-      mainWindow.maximize();
+ipcMain.handle("add-producto", async (event, productData) => {
+  try {
+    if (!currentUser) {
+      return { success: false, message: "No hay usuario autenticado" };
     }
+    return await ProductosService.addProduct(productData, currentUser.id);
+  } catch (error) {
+    console.error("Error al agregar producto:", error);
+    return { success: false, message: "Error al agregar producto" };
   }
 });
 
-// Cerrar aplicación
-ipcMain.handle("close-app", async (event) => {
-  app.quit();
+ipcMain.handle("update-stock", async (event, productId, newStock) => {
+  try {
+    if (!currentUser) {
+      return { success: false, message: "No hay usuario autenticado" };
+    }
+    return await ProductosService.updateStock(productId, newStock, currentUser.id);
+  } catch (error) {
+    console.error("Error al actualizar stock:", error);
+    return { success: false, message: "Error al actualizar stock" };
+  }
 });
 
-// Mostrar diálogo de confirmación
+ipcMain.handle("search-productos", async (event, query) => {
+  try {
+    return await ProductosService.searchProducts(query);
+  } catch (error) {
+    console.error("Error al buscar productos:", error);
+    return { success: false, message: "Error al buscar productos" };
+  }
+});
+
+// ============================================================
+// HANDLERS IPC - Socios
+// ============================================================
+
+ipcMain.handle("get-socios", async () => {
+  try {
+    return await SociosService.getAllSocios();
+  } catch (error) {
+    console.error("Error al obtener socios:", error);
+    return { success: false, message: "Error al cargar socios" };
+  }
+});
+
+ipcMain.handle("registrar-socio", async (event, socioData) => {
+  try {
+    if (!currentUser) {
+      return { success: false, message: "No hay usuario autenticado" };
+    }
+    return await SociosService.registrarSocio(socioData, currentUser.id);
+  } catch (error) {
+    console.error("Error al registrar socio:", error);
+    return { success: false, message: "Error al registrar socio" };
+  }
+});
+
+ipcMain.handle("registrar-asistencia", async (event, idSocio) => {
+  try {
+    if (!currentUser) {
+      return { success: false, message: "No hay usuario autenticado" };
+    }
+    return await SociosService.registrarAsistencia(idSocio, currentUser.id);
+  } catch (error) {
+    console.error("Error al registrar asistencia:", error);
+    return { success: false, message: "Error al registrar asistencia" };
+  }
+});
+
+ipcMain.handle("get-estadisticas-socios", async () => {
+  try {
+    return await SociosService.getEstadisticas();
+  } catch (error) {
+    console.error("Error al obtener estadísticas:", error);
+    return { success: false, message: "Error al obtener estadísticas" };
+  }
+});
+
+ipcMain.handle("buscar-socios", async (event, query) => {
+  try {
+    return await SociosService.buscarSocios(query);
+  } catch (error) {
+    console.error("Error al buscar socios:", error);
+    return { success: false, message: "Error al buscar socios" };
+  }
+});
+
+// ============================================================
+// HANDLERS IPC - Ventanas y Diálogos
+// ============================================================
+
 ipcMain.handle("show-confirmation", async (event, options) => {
   const { dialog } = require("electron");
   const result = await dialog.showMessageBox(mainWindow, {
@@ -232,17 +337,14 @@ ipcMain.handle("show-confirmation", async (event, options) => {
     title: options.title || "Confirmación",
     message: options.message || "¿Estás seguro?",
   });
-
-  return result.response === 0; // true si presionó "Sí"
+  return result.response === 0;
 });
 
-// Mostrar mensaje de error
 ipcMain.handle("show-error", async (event, message) => {
   const { dialog } = require("electron");
   await dialog.showErrorBox("Error", message);
 });
 
-// Mostrar mensaje de información
 ipcMain.handle("show-info", async (event, options) => {
   const { dialog } = require("electron");
   await dialog.showMessageBox(mainWindow, {
@@ -252,45 +354,10 @@ ipcMain.handle("show-info", async (event, options) => {
   });
 });
 
-// Manejar logout
-ipcMain.handle('logout', async (event) => {
-  logout();
-  return { success: true };
-});
-
-// Configurar el entorno de desarrollo
-if (process.env.NODE_ENV === "development") {
-  // Recargar automáticamente en desarrollo
-  require("electron-reload")(__dirname, {
-    electron: path.join(__dirname, "..", "node_modules", ".bin", "electron"),
-    hardResetMethod: "exit",
-  });
-}
-
-// Prevenir que la aplicación se cierre sin confirmación
-app.on("before-quit", async (event) => {
-  if (currentUser) {
-    event.preventDefault();
-
-    const { dialog } = require("electron");
-    const result = await dialog.showMessageBox(mainWindow, {
-      type: "question",
-      buttons: ["Salir", "Cancelar"],
-      defaultId: 1,
-      title: "Confirmar salida",
-      message: "¿Estás seguro de que quieres salir de la aplicación?",
-    });
-
-    if (result.response === 0) {
-      app.exit();
-    }
-  }
-});
-
 // Manejar errores no capturados
 process.on("uncaughtException", (error) => {
   console.error("Error no capturado:", error);
-
+  
   const { dialog } = require("electron");
   dialog.showErrorBox(
     "Error Crítico",
@@ -299,3 +366,4 @@ process.on("uncaughtException", (error) => {
 });
 
 console.log("🚀 Aplicación Gimnasio iniciada correctamente");
+console.log("📊 Estado de BD:", isDbConnected ? "Conectado ✅" : "Desconectado ❌");
