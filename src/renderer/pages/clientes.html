@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gimnasio - Clientes</title>
     <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/socio.css">
 </head>
 <body>
     <div class="app-container">
@@ -27,11 +28,201 @@
                 <a href="#" class="nav-item" data-page="acceso">🔐 Control Acceso</a>
             </nav>
         </aside>
-
         <main class="main-content">
-            <h2>👥 Gestión de Clientes</h2>
-            <p>Funcionalidad en desarrollo...</p>
+            <div class="socios-container">
+                <!-- Header con botón de nuevo socio -->
+                <div class="socios-header">
+                    <div>
+                        <h2>👥 Gestión de Socios</h2>
+                        <p style="color: var(--text-secondary); margin-top: var(--spacing-xs);">
+                            Administra los miembros del gimnasio
+                        </p>
+                    </div>
+                    <button class="btn btn-primary" id="btnNuevoSocio">
+                        ➕ Nuevo Socio
+                    </button>
+                </div>
+
+                <!-- Estadísticas rápidas -->
+                <div class="stats-bar">
+                    <div class="stat-box">
+                        <div class="stat-number" id="statActivos">0</div>
+                        <div class="stat-label">Activos</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-number" id="statVencidos">0</div>
+                        <div class="stat-label">Vencidos</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-number" id="statProximosVencer">0</div>
+                        <div class="stat-label">Por Vencer (7 días)</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-number" id="statEstudiantes">0</div>
+                        <div class="stat-label">Estudiantes</div>
+                    </div>
+                </div>
+
+                <!-- Barra de búsqueda y filtros -->
+                <div class="search-filter-bar">
+                    <div class="search-box">
+                        <input type="text" id="searchSocios" placeholder="Buscar por nombre, teléfono o código...">
+                    </div>
+                    <select id="filterEstado" class="form-control">
+                        <option value="">Todos los estados</option>
+                        <option value="activo">Activos</option>
+                        <option value="vencido">Vencidos</option>
+                        <option value="suspendido">Suspendidos</option>
+                    </select>
+                    <button class="btn btn-secondary" id="btnExportar">
+                        📊 Exportar
+                    </button>
+                </div>
+
+                <!-- Grid de socios -->
+                <div class="socios-grid" id="sociosGrid">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">👥</div>
+                        <p>Cargando socios...</p>
+                    </div>
+                </div>
+            </div>
         </main>
+    </div>
+
+    <!-- Modal: Nuevo/Editar Socio -->
+    <div class="modal" id="modalSocio">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalSocioTitle">Nuevo Socio</h3>
+                <button class="modal-close" id="btnCerrarModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="formSocio">
+                    <div class="form-grid">
+                        <!-- Información Personal -->
+                        <div class="form-group full-width">
+                            <label>Nombre Completo *</label>
+                            <input type="text" name="nombre_completo" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Teléfono/Celular *</label>
+                            <input type="tel" name="celular" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" name="email">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Fecha de Nacimiento</label>
+                            <input type="date" name="fecha_nacimiento">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Género</label>
+                            <select name="genero">
+                                <option value="">Seleccionar...</option>
+                                <option value="masculino">Masculino</option>
+                                <option value="femenino">Femenino</option>
+                                <option value="otro">Otro</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label>Dirección</label>
+                            <input type="text" name="direccion">
+                        </div>
+
+                        <!-- Contacto de Emergencia -->
+                        <div class="form-group">
+                            <label>Contacto de Emergencia</label>
+                            <input type="text" name="contacto_emergencia">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Teléfono de Emergencia</label>
+                            <input type="tel" name="telefono_emergencia">
+                        </div>
+
+                        <!-- Membresía -->
+                        <div class="form-group">
+                            <label>Tipo de Membresía *</label>
+                            <select name="tipo_membresia" required>
+                                <option value="mensual">Mensual (30 días)</option>
+                                <option value="trimestral">Trimestral (90 días)</option>
+                                <option value="semestral">Semestral (180 días)</option>
+                                <option value="anual">Anual (365 días)</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Monto a Pagar *</label>
+                            <input type="number" name="monto_pago" step="0.01" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Método de Pago *</label>
+                            <select name="metodo_pago" required>
+                                <option value="efectivo">Efectivo</option>
+                                <option value="tarjeta">Tarjeta</option>
+                                <option value="transferencia">Transferencia</option>
+                            </select>
+                        </div>
+
+                        <!-- Estudiante -->
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" name="es_estudiante" id="checkEstudiante">
+                                ¿Es estudiante?
+                            </label>
+                        </div>
+
+                        <div class="estudiante-fields" id="estudianteFields">
+                            <div class="form-group full-width">
+                                <label>Nombre del Instituto</label>
+                                <input type="text" name="nombre_instituto">
+                            </div>
+                            <div class="form-group">
+                                <label>
+                                    <input type="checkbox" name="tiene_descuento" id="checkDescuento">
+                                    Aplicar descuento
+                                </label>
+                            </div>
+                            <div class="form-group">
+                                <label>% Descuento</label>
+                                <input type="number" name="porcentaje_descuento" min="0" max="100" value="0">
+                            </div>
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label>Observaciones</label>
+                            <textarea name="observaciones" rows="3"></textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="btnCancelar">Cancelar</button>
+                <button class="btn btn-primary" id="btnGuardarSocio">Guardar Socio</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Detalle de Socio -->
+    <div class="modal" id="modalDetalleSocio">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Detalle del Socio</h3>
+                <button class="modal-close" id="btnCerrarDetalle">&times;</button>
+            </div>
+            <div class="modal-body" id="detalleSocioContent">
+                <!-- Se llenará dinámicamente -->
+            </div>
+        </div>
+    </div>
     </div>
 
     <script src="../js/clientes.js"></script>

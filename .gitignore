@@ -6,3 +6,5 @@ build/
 config/database.js
 .DS_Store
 Thumbs.db
+src/mysql/*
+!src/mysql/.gitkeep
