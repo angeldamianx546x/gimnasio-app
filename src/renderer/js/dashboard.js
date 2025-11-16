@@ -234,8 +234,8 @@ class DashboardManager {
       case "nueva-venta":
         await this.navigateToPage("ventas");
         break;
-      case "nuevo-cliente":
-        await this.navigateToPage("clientes");
+      case "nuevo-socio":
+        await this.navigateToPage("socios");
         break;
       case "verificar-acceso":
         await this.navigateToPage("acceso");

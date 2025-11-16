@@ -134,7 +134,7 @@ app.whenReady().then(async () => {
     // Inicializar base de datos
     await initDatabase();
     isDbConnected = true;
-    console.log("✅ Base de datos inicializada");
+    console.log("Base de datos inicializada");
     
     // Crear usuario admin por defecto
     await AuthService.createDefaultAdmin();
@@ -148,7 +148,7 @@ app.whenReady().then(async () => {
       }
     });
   } catch (error) {
-    console.error("❌ Error al inicializar la aplicación:", error);
+    console.error("Error al inicializar la aplicación:", error);
     
     const { dialog } = require("electron");
     dialog.showErrorBox(
@@ -213,7 +213,7 @@ ipcMain.handle("logout", async () => {
 // ============================================================
 
 ipcMain.handle("navigate-to", async (event, page) => {
-  const validPages = ["dashboard", "ventas", "productos", "clientes", "acceso"];
+  const validPages = ["dashboard", "ventas", "productos", "socios", "acceso"];
 
   if (validPages.includes(page)) {
     mainWindow.loadFile(path.join(__dirname, `renderer/pages/${page}.html`));
