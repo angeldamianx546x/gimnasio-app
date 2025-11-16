@@ -5,6 +5,7 @@ class SociosManager {
     this.currentUser = null;
     this.socios = [];
     this.socioActual = null;
+    this.pagosActuales = [];
     this.init();
   }
 
@@ -40,24 +41,10 @@ class SociosManager {
       btnNuevoSocio.addEventListener("click", () => this.abrirModalNuevo());
     }
 
-    // Botones del Modal
-    const btnCerrarModal = document.getElementById("btnCerrarModal");
-    const btnCancelar = document.getElementById("btnCancelar");
-    const btnGuardarSocio = document.getElementById("btnGuardarSocio");
-
-    if (btnCerrarModal) btnCerrarModal.addEventListener("click", () => this.cerrarModal());
-    if (btnCancelar) btnCancelar.addEventListener("click", () => this.cerrarModal());
-    if (btnGuardarSocio) btnGuardarSocio.addEventListener("click", () => this.guardarSocio());
-
-    // Checkbox Estudiante
-    const checkEstudiante = document.getElementById("checkEstudiante");
-    if (checkEstudiante) {
-      checkEstudiante.addEventListener("change", (e) => {
-        const estudianteFields = document.getElementById("estudianteFields");
-        if (estudianteFields) {
-          estudianteFields.classList.toggle("active", e.target.checked);
-        }
-      });
+    // Recargar
+    const btnRecargar = document.getElementById("btnRecargar");
+    if (btnRecargar) {
+      btnRecargar.addEventListener("click", () => this.recargarDatos());
     }
 
     // Búsqueda
@@ -76,83 +63,65 @@ class SociosManager {
       });
     }
 
-    // Botón exportar
-    const btnExportar = document.getElementById("btnExportar");
-    if (btnExportar) {
-      btnExportar.addEventListener("click", () => this.exportarSocios());
-    }
+    // Modal Socio
+    const btnCerrarModalSocio = document.getElementById("btnCerrarModalSocio");
+    const btnCancelarSocio = document.getElementById("btnCancelarSocio");
+    const btnGuardarSocio = document.getElementById("btnGuardarSocio");
 
-    // Cerrar modal de detalle
-    const btnCerrarDetalle = document.getElementById("btnCerrarDetalle");
-    if (btnCerrarDetalle) {
-      btnCerrarDetalle.addEventListener("click", () => this.cerrarModalDetalle());
-    }
+    if (btnCerrarModalSocio) btnCerrarModalSocio.addEventListener("click", () => this.cerrarModalSocio());
+    if (btnCancelarSocio) btnCancelarSocio.addEventListener("click", () => this.cerrarModalSocio());
+    if (btnGuardarSocio) btnGuardarSocio.addEventListener("click", () => this.guardarSocio());
 
-    // Modal de Renovación
-    const btnCerrarRenovacion = document.getElementById("btnCerrarRenovacion");
-    const btnCancelarRenovacion = document.getElementById("btnCancelarRenovacion");
-    const btnConfirmarRenovacion = document.getElementById("btnConfirmarRenovacion");
-
-    if (btnCerrarRenovacion) {
-      btnCerrarRenovacion.addEventListener("click", () => this.cerrarModalRenovacion());
-    }
-    if (btnCancelarRenovacion) {
-      btnCancelarRenovacion.addEventListener("click", () => this.cerrarModalRenovacion());
-    }
-    if (btnConfirmarRenovacion) {
-      btnConfirmarRenovacion.addEventListener("click", () => this.confirmarRenovacion());
-    }
-
-    // Calcular fecha al cambiar tipo de membresía en renovación
-    const tipoMembresiaRenovacion = document.querySelector('[name="tipo_membresia_renovacion"]');
-    if (tipoMembresiaRenovacion) {
-      tipoMembresiaRenovacion.addEventListener("change", () => {
-        this.calcularNuevaFechaVencimiento();
-        this.actualizarMontoRenovacion();
-      });
-    }
-
-    // Calcular fecha al cambiar fecha de renovación
-    const fechaRenovacion = document.querySelector('[name="fecha_renovacion"]');
-    if (fechaRenovacion) {
-      fechaRenovacion.addEventListener("change", () => {
-        this.calcularNuevaFechaVencimiento();
-      });
-    }
-
-    // Checkbox descuento en renovación
-    const checkDescuentoRenovacion = document.querySelector('[name="aplicar_descuento_renovacion"]');
-    if (checkDescuentoRenovacion) {
-      checkDescuentoRenovacion.addEventListener("change", (e) => {
-        const descuentoField = document.getElementById("descuentoRenovacionField");
-        if (descuentoField) {
-          descuentoField.style.display = e.target.checked ? "block" : "none";
+    // Checkbox Estudiante
+    const checkEstudiante = document.getElementById("checkEstudiante");
+    if (checkEstudiante) {
+      checkEstudiante.addEventListener("change", (e) => {
+        const institutoField = document.getElementById("institutoField");
+        if (institutoField) {
+          institutoField.style.display = e.target.checked ? "block" : "none";
         }
-        this.calcularMontoFinal();
       });
     }
 
-    // Calcular monto final al cambiar descuento
-    const porcentajeDescuento = document.querySelector('[name="porcentaje_descuento_renovacion"]');
-    if (porcentajeDescuento) {
-      porcentajeDescuento.addEventListener("input", () => {
-        this.calcularMontoFinal();
-      });
-    }
-
-    // Calcular total automáticamente según tipo de membresía
-    const tipoMembresia = document.querySelector('[name="tipo_membresia"]');
+    // Cambiar tipo de membresía
+    const tipoMembresia = document.getElementById("tipoMembresia");
     if (tipoMembresia) {
       tipoMembresia.addEventListener("change", (e) => {
-        const montoPago = document.querySelector('[name="monto_pago"]');
-        const precios = {
-          diaria: 30,
-          semanal: 150,
-          mensual: 300
-        };
-        if (montoPago) {
-          montoPago.value = precios[e.target.value] || 0;
-        }
+        this.actualizarMonto(e.target.value, "montoPago");
+      });
+    }
+
+    // Modal Detalle
+    const btnCerrarDetalle = document.getElementById("btnCerrarDetalle");
+    const btnCerrarDetalleFooter = document.getElementById("btnCerrarDetalleFooter");
+    const btnRegistrarPago = document.getElementById("btnRegistrarPago");
+
+    if (btnCerrarDetalle) btnCerrarDetalle.addEventListener("click", () => this.cerrarModalDetalle());
+    if (btnCerrarDetalleFooter) btnCerrarDetalleFooter.addEventListener("click", () => this.cerrarModalDetalle());
+    if (btnRegistrarPago) btnRegistrarPago.addEventListener("click", () => this.abrirModalPago());
+
+    // Modal Pago
+    const btnCerrarModalPago = document.getElementById("btnCerrarModalPago");
+    const btnCancelarPago = document.getElementById("btnCancelarPago");
+    const btnConfirmarPago = document.getElementById("btnConfirmarPago");
+
+    if (btnCerrarModalPago) btnCerrarModalPago.addEventListener("click", () => this.cerrarModalPago());
+    if (btnCancelarPago) btnCancelarPago.addEventListener("click", () => this.cerrarModalPago());
+    if (btnConfirmarPago) btnConfirmarPago.addEventListener("click", () => this.confirmarPago());
+
+    // Tipo de membresía en pago
+    const pagoTipoMembresia = document.getElementById("pagoTipoMembresia");
+    if (pagoTipoMembresia) {
+      pagoTipoMembresia.addEventListener("change", () => {
+        this.calcularFechaVencimiento();
+      });
+    }
+
+    // Fecha de inicio en pago
+    const pagoFechaInicio = document.getElementById("pagoFechaInicio");
+    if (pagoFechaInicio) {
+      pagoFechaInicio.addEventListener("change", () => {
+        this.calcularFechaVencimiento();
       });
     }
   }
@@ -174,7 +143,6 @@ class SociosManager {
       userInfo.textContent = `${this.currentUser.nombre} (${this.currentUser.tipo})`;
     }
 
-    // Ocultar productos si es empleado
     if (this.currentUser && this.currentUser.tipo === "empleado") {
       const productosNav = document.getElementById("productosNav");
       if (productosNav) {
@@ -183,13 +151,19 @@ class SociosManager {
     }
   }
 
+  async recargarDatos() {
+    await this.loadSocios();
+    await this.loadEstadisticas();
+    this.mostrarExito("Datos recargados correctamente");
+  }
+
   async loadSocios() {
     try {
       const result = await ipcRenderer.invoke("get-socios");
       
       if (result.success) {
         this.socios = result.socios;
-        this.renderSocios(this.socios);
+        this.renderTabla(this.socios);
       } else {
         this.mostrarError("Error al cargar socios");
       }
@@ -206,160 +180,256 @@ class SociosManager {
       if (result.success) {
         const stats = result.estadisticas;
         
-        const statActivos = document.getElementById("statActivos");
-        const statVencidos = document.getElementById("statVencidos");
-        const statProximosVencer = document.getElementById("statProximosVencer");
-        const statEstudiantes = document.getElementById("statEstudiantes");
-        
-        if (statActivos) statActivos.textContent = stats.activos;
-        if (statVencidos) statVencidos.textContent = stats.vencidos;
-        if (statProximosVencer) statProximosVencer.textContent = stats.proximosVencer;
-        if (statEstudiantes) statEstudiantes.textContent = stats.estudiantes;
+        document.getElementById("statActivos").textContent = stats.activos;
+        document.getElementById("statVencidos").textContent = stats.vencidos;
+        document.getElementById("statProximosVencer").textContent = stats.proximosVencer;
+        document.getElementById("statEstudiantes").textContent = stats.estudiantes;
       }
     } catch (error) {
       console.error("Error cargando estadísticas:", error);
     }
   }
 
-  renderSocios(socios) {
-    const container = document.getElementById("sociosGrid");
-    if (!container) return;
+  renderTabla(socios) {
+    const tbody = document.getElementById("sociosTableBody");
+    if (!tbody) return;
 
     if (socios.length === 0) {
-      container.innerHTML = `
-        <div class="empty-state">
-          <div class="empty-state-icon">👥</div>
-          <p>No hay socios registrados</p>
-        </div>
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="10" style="text-align: center; padding: var(--spacing-xl);">
+            <div class="empty-state">
+              <div class="empty-state-icon">👥</div>
+              <p>No hay socios registrados</p>
+            </div>
+          </td>
+        </tr>
       `;
       return;
     }
 
-    const html = socios.map((socio) => this.createSocioCard(socio)).join("");
-    container.innerHTML = html;
+    const html = socios.map(socio => this.createTableRow(socio)).join("");
+    tbody.innerHTML = html;
 
-    // Agregar eventos a las tarjetas
-    document.querySelectorAll(".socio-card").forEach((card) => {
-      card.addEventListener("click", (e) => {
-        if (!e.target.closest(".socio-card-actions")) {
-          const idSocio = card.dataset.id;
-          this.verDetalleSocio(idSocio);
+    // Agregar eventos de doble clic
+    const rows = tbody.querySelectorAll("tr");
+    rows.forEach((row, index) => {
+      row.addEventListener("dblclick", () => {
+        this.verDetalleSocio(socios[index]);
+      });
+    });
+
+    // Eventos de botones de acción
+    this.bindActionButtons();
+  }
+
+  createTableRow(socio) {
+    const diasRestantes = socio.dias_restantes || 0;
+    let estadoClass = "";
+    let estadoBadgeClass = "";
+    let estadoTexto = "";
+
+    if (diasRestantes < 0 || !socio.fecha_vencimiento) {
+      estadoClass = "estado-vencido";
+      estadoBadgeClass = "vencido";
+      estadoTexto = "Vencido";
+    } else if (diasRestantes === 0 || diasRestantes === 1) {
+      estadoClass = "estado-proximo-vencer";
+      estadoBadgeClass = "proximo-vencer";
+      estadoTexto = "Por Vencer";
+    } else {
+      estadoClass = "estado-activo";
+      estadoBadgeClass = "activo";
+      estadoTexto = "Activo";
+    }
+
+    const fechaIngreso = new Date(socio.fecha_ingreso).toLocaleDateString('es-ES', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
+
+    const fechaVencimiento = socio.fecha_vencimiento
+      ? new Date(socio.fecha_vencimiento).toLocaleDateString('es-ES', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric'
+        })
+      : 'Sin pago';
+
+    const diasRestantesTexto = diasRestantes >= 0 ? `${diasRestantes} días` : 'Vencido';
+
+    return `
+      <tr class="${estadoClass}" data-id="${socio.id_socio}">
+        <td><strong>${socio.id_socio.toString().padStart(4, '0')}</strong></td>
+        <td><strong>${socio.nombre}</strong></td>
+        <td>${socio.celular || 'N/A'}</td>
+        <td>${socio.tipo_turno}</td>
+        <td>${socio.instituto ? '🎓 ' + socio.instituto : '-'}</td>
+        <td>${fechaIngreso}</td>
+        <td>${fechaVencimiento}</td>
+        <td><strong>${diasRestantesTexto}</strong></td>
+        <td>
+          <span class="estado-badge ${estadoBadgeClass}">${estadoTexto}</span>
+        </td>
+        <td>
+          <div class="acciones-cell">
+            <button class="btn btn-primary btn-icon btn-pagar" 
+                    data-id="${socio.id_socio}" 
+                    title="Registrar Pago">
+              💰
+            </button>
+            <button class="btn btn-success btn-icon btn-asistencia" 
+                    data-id="${socio.id_socio}" 
+                    title="Registrar Asistencia">
+              ✓
+            </button>
+            <button class="btn btn-error btn-icon btn-eliminar" 
+                    data-id="${socio.id_socio}" 
+                    title="Eliminar">
+              🗑️
+            </button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }
+
+  bindActionButtons() {
+    // Botones de pago
+    document.querySelectorAll(".btn-pagar").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const idSocio = parseInt(btn.dataset.id);
+        const socio = this.socios.find(s => s.id_socio === idSocio);
+        if (socio) {
+          this.socioActual = socio;
+          this.abrirModalPago();
         }
       });
     });
 
-    // Eventos botones de acciones
-    document.querySelectorAll(".btn-editar").forEach((btn) => {
-      btn.addEventListener("click", (e) => {
+    // Botones de asistencia
+    document.querySelectorAll(".btn-asistencia").forEach(btn => {
+      btn.addEventListener("click", async (e) => {
         e.stopPropagation();
-        const idSocio = btn.closest(".socio-card").dataset.id;
-        this.editarSocio(idSocio);
+        const idSocio = parseInt(btn.dataset.id);
+        await this.registrarAsistencia(idSocio);
       });
     });
 
-    document.querySelectorAll(".btn-renovar").forEach((btn) => {
-      btn.addEventListener("click", (e) => {
+    // Botones de eliminar
+    document.querySelectorAll(".btn-eliminar").forEach(btn => {
+      btn.addEventListener("click", async (e) => {
         e.stopPropagation();
-        const idSocio = btn.closest(".socio-card").dataset.id;
-        this.renovarMembresia(idSocio);
-      });
-    });
-
-    document.querySelectorAll(".btn-asistencia").forEach((btn) => {
-      btn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const idSocio = btn.closest(".socio-card").dataset.id;
-        this.registrarAsistencia(idSocio);
+        const idSocio = parseInt(btn.dataset.id);
+        await this.eliminarSocio(idSocio);
       });
     });
   }
 
-  createSocioCard(socio) {
-    const estadoClass = socio.estado === "activo" ? "estado-activo" : "estado-vencido";
-    const diasRestantes = socio.dias_restantes || 0;
-    let diasClass = "bien";
+  async verDetalleSocio(socio) {
+    this.socioActual = socio;
     
-    if (diasRestantes <= 0) {
-      diasClass = "critico";
-    } else if (diasRestantes <= 7) {
-      diasClass = "advertencia";
+    // Llenar información básica
+    document.getElementById("detNombre").textContent = socio.nombre;
+    document.getElementById("detCelular").textContent = socio.celular || 'N/A';
+    document.getElementById("detTurno").textContent = socio.tipo_turno;
+    document.getElementById("detInstituto").textContent = socio.instituto || 'No es estudiante';
+    
+    const fechaIngreso = new Date(socio.fecha_ingreso).toLocaleDateString('es-ES', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+    document.getElementById("detFechaIngreso").textContent = fechaIngreso;
+    document.getElementById("detMesInscripcion").textContent = socio.mes_inscripcion;
+
+    // Estado de membresía
+    const diasRestantes = socio.dias_restantes || 0;
+    let estadoBadge = "";
+    
+    if (diasRestantes < 0 || !socio.fecha_vencimiento) {
+      estadoBadge = '<span class="estado-badge vencido">Vencido</span>';
+    } else if (diasRestantes === 0 || diasRestantes === 1) {
+      estadoBadge = '<span class="estado-badge proximo-vencer">Por Vencer</span>';
+    } else {
+      estadoBadge = '<span class="estado-badge activo">Activo</span>';
     }
+    
+    document.getElementById("detEstado").innerHTML = estadoBadge;
+    
+    const fechaVencimiento = socio.fecha_vencimiento
+      ? new Date(socio.fecha_vencimiento).toLocaleDateString('es-ES', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        })
+      : 'Sin pago registrado';
+    document.getElementById("detFechaVencimiento").textContent = fechaVencimiento;
+    document.getElementById("detDiasRestantes").textContent = diasRestantes >= 0 ? `${diasRestantes} días` : 'Vencido';
 
-    const inicial = socio.nombre.charAt(0).toUpperCase();
-    const fechaVencimiento = socio.fecha_vencimiento 
-      ? new Date(socio.fecha_vencimiento).toLocaleDateString('es-ES')
-      : 'Sin registro';
+    // Cargar historial de pagos
+    await this.cargarHistorialPagos(socio.id_socio);
 
-    return `
-      <div class="socio-card" data-id="${socio.id_socio}">
-        <div class="socio-card-header">
-          <div class="socio-foto">${inicial}</div>
-          <div class="socio-info-header">
-            <div class="socio-nombre">${socio.nombre}</div>
-            <div class="socio-codigo">ID: ${socio.id_socio.toString().padStart(4, '0')}</div>
-          </div>
-        </div>
+    // Mostrar modal
+    document.getElementById("modalDetalleSocio").classList.add("active");
+  }
+
+  async cargarHistorialPagos(idSocio) {
+    const container = document.getElementById("historialPagos");
+    
+    try {
+      const result = await ipcRenderer.invoke("get-historial-pagos", idSocio);
+      
+      if (result.success && result.pagos.length > 0) {
+        this.pagosActuales = result.pagos;
         
-        <div class="socio-card-body">
-          <div class="socio-info-row">
-            <span class="socio-info-label">Estado:</span>
-            <span class="estado-badge ${estadoClass}">
-              ${socio.estado || 'Sin registro'}
-            </span>
-          </div>
-          
-          <div class="socio-info-row">
-            <span class="socio-info-label">Teléfono:</span>
-            <span class="socio-info-value">${socio.celular || 'No registrado'}</span>
-          </div>
-          
-          <div class="socio-info-row">
-            <span class="socio-info-label">Turno:</span>
-            <span class="socio-info-value">${socio.tipo_turno}</span>
-          </div>
-          
-          <div class="socio-info-row">
-            <span class="socio-info-label">Vencimiento:</span>
-            <span class="socio-info-value">${fechaVencimiento}</span>
-          </div>
-          
-          ${diasRestantes >= 0 ? `
-            <div class="socio-info-row">
-              <span class="socio-info-label">Días restantes:</span>
-              <span class="dias-restantes ${diasClass}">${diasRestantes} días</span>
-            </div>
-          ` : ''}
-          
-          ${socio.instituto ? `
-            <div class="socio-info-row">
-              <span class="socio-info-label">Instituto:</span>
-              <span class="socio-info-value">🎓 ${socio.instituto}</span>
-            </div>
-          ` : ''}
-        </div>
+        const html = `
+          <table class="pagos-table">
+            <thead>
+              <tr>
+                <th>Fecha Pago</th>
+                <th>Tipo</th>
+                <th>Monto</th>
+                <th>Periodo</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${result.pagos.map(pago => {
+                const fechaPago = new Date(pago.fecha_pago).toLocaleDateString('es-ES');
+                const fechaInicio = new Date(pago.fecha_inicio).toLocaleDateString('es-ES');
+                const fechaFin = new Date(pago.fecha_fin).toLocaleDateString('es-ES');
+                
+                return `
+                  <tr>
+                    <td>${fechaPago}</td>
+                    <td>${pago.tipo}</td>
+                    <td><strong>$${parseFloat(pago.monto).toFixed(2)}</strong></td>
+                    <td>${fechaInicio} - ${fechaFin}</td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        `;
         
-        <div class="socio-card-actions">
-          <button class="btn btn-secondary btn-icon btn-editar" title="Editar">
-            ✏️
-          </button>
-          <button class="btn btn-primary btn-icon btn-renovar" title="Renovar membresía">
-            🔄
-          </button>
-          <button class="btn btn-success btn-icon btn-asistencia" title="Registrar asistencia">
-            ✓
-          </button>
-        </div>
-      </div>
-    `;
+        container.innerHTML = html;
+      } else {
+        container.innerHTML = '<p style="text-align: center; color: var(--text-light); padding: var(--spacing-lg);">No hay pagos registrados</p>';
+      }
+    } catch (error) {
+      console.error("Error cargando historial de pagos:", error);
+      container.innerHTML = '<p style="text-align: center; color: var(--error-color);">Error al cargar historial</p>';
+    }
   }
 
   abrirModalNuevo() {
     this.socioActual = null;
-    const modal = document.getElementById("modalSocio");
-    const title = document.getElementById("modalSocioTitle");
+    
     const form = document.getElementById("formSocio");
-
-    if (title) title.textContent = "Nuevo Socio";
     if (form) form.reset();
     
     // Establecer fecha de ingreso como hoy
@@ -367,193 +437,119 @@ class SociosManager {
     if (fechaIngreso) {
       fechaIngreso.value = new Date().toISOString().split('T')[0];
     }
-
-    // Establecer mes de inscripción
-    const mesInscripcion = document.querySelector('[name="mes_inscripcion"]');
-    if (mesInscripcion) {
-      const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
-                     'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-      mesInscripcion.value = meses[new Date().getMonth()];
+    
+    // Ocultar campo instituto
+    const institutoField = document.getElementById("institutoField");
+    if (institutoField) {
+      institutoField.style.display = "none";
     }
-
-    // Ocultar campos de estudiante
-    const estudianteFields = document.getElementById("estudianteFields");
-    if (estudianteFields) {
-      estudianteFields.classList.remove("active");
-    }
-
-    modal.classList.add("active");
+    
+    document.getElementById("modalSocioTitle").textContent = "Nuevo Socio";
+    document.getElementById("modalSocio").classList.add("active");
   }
 
-  cerrarModal() {
-    const modal = document.getElementById("modalSocio");
-    modal.classList.remove("active");
+  cerrarModalSocio() {
+    document.getElementById("modalSocio").classList.remove("active");
   }
 
   cerrarModalDetalle() {
-    const modal = document.getElementById("modalDetalleSocio");
-    modal.classList.remove("active");
-  }
-
-  cerrarModalRenovacion() {
-    const modal = document.getElementById("modalRenovacion");
-    modal.classList.remove("active");
+    document.getElementById("modalDetalleSocio").classList.remove("active");
     this.socioActual = null;
   }
 
-  calcularNuevaFechaVencimiento() {
-    const tipoMembresia = document.querySelector('[name="tipo_membresia_renovacion"]');
-    const fechaRenovacion = document.querySelector('[name="fecha_renovacion"]');
-    const nuevaFechaElement = document.getElementById("nuevaFechaVencimiento");
+  abrirModalPago() {
+    if (!this.socioActual) return;
+    
+    // Cerrar modal de detalle si está abierto
+    this.cerrarModalDetalle();
+    
+    const form = document.getElementById("formPago");
+    if (form) form.reset();
+    
+    document.getElementById("pagoIdSocio").value = this.socioActual.id_socio;
+    document.getElementById("pagoSocioNombre").textContent = this.socioActual.nombre;
+    
+    const diasRestantes = this.socioActual.dias_restantes || 0;
+    let estadoTexto = "";
+    
+    if (diasRestantes < 0 || !this.socioActual.fecha_vencimiento) {
+      estadoTexto = "❌ Membresía Vencida";
+    } else if (diasRestantes === 0 || diasRestantes === 1) {
+      estadoTexto = "⚠️ Próximo a Vencer";
+    } else {
+      estadoTexto = `✅ Activo (${diasRestantes} días restantes)`;
+    }
+    
+    document.getElementById("pagoEstadoActual").textContent = estadoTexto;
+    
+    // Calcular fechas
+    this.calcularFechaVencimiento();
+    
+    document.getElementById("modalPago").classList.add("active");
+  }
 
-    if (!tipoMembresia || !fechaRenovacion || !nuevaFechaElement) return;
+  cerrarModalPago() {
+    document.getElementById("modalPago").classList.remove("active");
+  }
 
-    const dias = {
-      'diaria': 1,
-      'semanal': 7,
-      'mensual': 30
+  actualizarMonto(tipo, elementId) {
+    const precios = {
+      diaria: 30,
+      semanal: 150,
+      mensual: 300
     };
+    
+    const monto = precios[tipo] || 300;
+    document.getElementById(elementId).value = monto;
+  }
 
-    const fechaInicio = new Date(fechaRenovacion.value);
-    const diasSumar = dias[tipoMembresia.value] || 30;
+  calcularFechaVencimiento() {
+    const tipoMembresia = document.getElementById("pagoTipoMembresia").value;
+    const fechaInicioInput = document.getElementById("pagoFechaInicio").value;
+    
+    const dias = {
+      diaria: 1,
+      semanal: 7,
+      mensual: 30
+    };
+    
+    const precios = {
+      diaria: 30,
+      semanal: 150,
+      mensual: 300
+    };
+    
+    const fechaInicio = fechaInicioInput ? new Date(fechaInicioInput) : new Date();
+    const diasSumar = dias[tipoMembresia] || 30;
     
     const fechaFin = new Date(fechaInicio);
     fechaFin.setDate(fechaFin.getDate() + diasSumar);
-
-    nuevaFechaElement.textContent = fechaFin.toLocaleDateString('es-ES', {
+    
+    document.getElementById("pagoFechaFin").textContent = fechaFin.toLocaleDateString('es-ES', {
       weekday: 'long',
       year: 'numeric',
       month: 'long',
       day: 'numeric'
     });
-  }
-
-  actualizarMontoRenovacion() {
-    const tipoMembresia = document.querySelector('[name="tipo_membresia_renovacion"]');
-    const montoBase = document.getElementById("montoBaseRenovacion");
-
-    if (!tipoMembresia || !montoBase) return;
-
-    const precios = {
-      'diaria': 30,
-      'semanal': 150,
-      'mensual': 300
-    };
-
-    const precio = precios[tipoMembresia.value] || 300;
-    montoBase.textContent = `${precio.toFixed(2)}`;
     
-    // Actualizar campo oculto del monto base
-    const montoBaseInput = document.querySelector('[name="monto_base_renovacion"]');
-    if (montoBaseInput) {
-      montoBaseInput.value = precio;
-    }
-
-    this.calcularMontoFinal();
-  }
-
-  calcularMontoFinal() {
-    const aplicarDescuento = document.querySelector('[name="aplicar_descuento_renovacion"]');
-    const porcentajeDescuento = document.querySelector('[name="porcentaje_descuento_renovacion"]');
-    const montoBase = parseFloat(document.querySelector('[name="monto_base_renovacion"]')?.value || 0);
-    const montoFinalElement = document.getElementById("montoFinalRenovacion");
-    const descuentoElement = document.getElementById("descuentoAplicado");
-
-    if (!montoFinalElement) return;
-
-    let montoFinal = montoBase;
-    let descuento = 0;
-
-    if (aplicarDescuento && aplicarDescuento.checked && porcentajeDescuento) {
-      const porcentaje = parseFloat(porcentajeDescuento.value) || 0;
-      descuento = (montoBase * porcentaje) / 100;
-      montoFinal = montoBase - descuento;
-    }
-
-    montoFinalElement.textContent = `${montoFinal.toFixed(2)}`;
-    
-    if (descuentoElement) {
-      if (descuento > 0) {
-        descuentoElement.textContent = `Descuento: -${descuento.toFixed(2)}`;
-        descuentoElement.style.display = 'block';
-      } else {
-        descuentoElement.style.display = 'none';
-      }
-    }
-  }
-
-  async confirmarRenovacion() {
-    if (!this.socioActual) return;
-
-    const tipoMembresia = document.querySelector('[name="tipo_membresia_renovacion"]');
-    const fechaRenovacion = document.querySelector('[name="fecha_renovacion"]');
-    const montoBase = parseFloat(document.querySelector('[name="monto_base_renovacion"]')?.value || 0);
-    const aplicarDescuento = document.querySelector('[name="aplicar_descuento_renovacion"]');
-    const porcentajeDescuento = document.querySelector('[name="porcentaje_descuento_renovacion"]');
-    const metodoPago = document.querySelector('[name="metodo_pago_renovacion"]');
-    const observaciones = document.querySelector('[name="observaciones_renovacion"]');
-
-    if (!tipoMembresia || !fechaRenovacion || !metodoPago) {
-      this.mostrarError("Por favor completa todos los campos requeridos");
-      return;
-    }
-
-    // Calcular monto final
-    let montoFinal = montoBase;
-    let descuentoAplicado = 0;
-    let porcentaje = 0;
-
-    if (aplicarDescuento && aplicarDescuento.checked && porcentajeDescuento) {
-      porcentaje = parseFloat(porcentajeDescuento.value) || 0;
-      descuentoAplicado = (montoBase * porcentaje) / 100;
-      montoFinal = montoBase - descuentoAplicado;
-    }
-
-    const renovacionData = {
-      id_socio: this.socioActual.id_socio,
-      tipo_membresia: tipoMembresia.value,
-      fecha_renovacion: fechaRenovacion.value,
-      monto: montoFinal,
-      metodo_pago: metodoPago.value,
-      descuento_aplicado: descuentoAplicado > 0,
-      porcentaje_descuento: porcentaje,
-      observaciones: observaciones ? observaciones.value : null
-    };
-
-    try {
-      const result = await ipcRenderer.invoke("renovar-membresia", renovacionData);
-      
-      if (result.success) {
-        this.mostrarExito(`Membresía renovada correctamente.\nNueva fecha de vencimiento: ${result.fecha_vencimiento}`);
-        this.cerrarModalRenovacion();
-        await this.loadSocios();
-        await this.loadEstadisticas();
-      } else {
-        this.mostrarError(result.message || "Error al renovar membresía");
-      }
-    } catch (error) {
-      console.error("Error al renovar membresía:", error);
-      this.mostrarError("Error al renovar membresía");
-    }
+    document.getElementById("pagoMontoCalculado").textContent = (precios[tipoMembresia] || 300).toFixed(2);
   }
 
   async guardarSocio() {
     const form = document.getElementById("formSocio");
     const formData = new FormData(form);
     
-    // Validar campos requeridos
-    if (!formData.get("nombre_completo") || !formData.get("celular") || 
-        !formData.get("fecha_ingreso") || !formData.get("monto_pago")) {
+    if (!formData.get("nombre") || !formData.get("celular") || 
+        !formData.get("fecha_ingreso") || !formData.get("tipo_membresia")) {
       this.mostrarError("Por favor completa todos los campos obligatorios");
       return;
     }
 
-    // Preparar datos
     const socioData = {
-      nombre: formData.get("nombre_completo"),
+      nombre: formData.get("nombre"),
       celular: formData.get("celular"),
-      tipo_turno: formData.get("tipo_turno") || "matutino",
-      instituto: formData.get("es_estudiante") ? formData.get("nombre_instituto") : null,
+      tipo_turno: formData.get("tipo_turno"),
+      instituto: formData.get("es_estudiante") ? formData.get("instituto") : null,
       fecha_ingreso: formData.get("fecha_ingreso"),
       mes_inscripcion: this.getMesNombre(new Date(formData.get("fecha_ingreso")).getMonth()),
       tipo_membresia: formData.get("tipo_membresia"),
@@ -565,7 +561,7 @@ class SociosManager {
       
       if (result.success) {
         this.mostrarExito("Socio registrado correctamente");
-        this.cerrarModal();
+        this.cerrarModalSocio();
         await this.loadSocios();
         await this.loadEstadisticas();
       } else {
@@ -577,42 +573,56 @@ class SociosManager {
     }
   }
 
-  getMesNombre(mes) {
-    const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
-                   'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-    return meses[mes];
-  }
-
-  async buscarSocios(query) {
-    if (!query.trim()) {
-      this.renderSocios(this.socios);
+  async confirmarPago() {
+    const form = document.getElementById("formPago");
+    const formData = new FormData(form);
+    
+    const idSocio = parseInt(formData.get("id_socio"));
+    const tipoMembresia = formData.get("tipo_membresia");
+    const fechaInicioInput = formData.get("fecha_inicio");
+    const metodoPago = formData.get("metodo_pago");
+    const observaciones = formData.get("observaciones");
+    
+    if (!tipoMembresia || !metodoPago) {
+      this.mostrarError("Por favor completa los campos requeridos");
       return;
     }
-
+    
+    const precios = {
+      diaria: 30,
+      semanal: 150,
+      mensual: 300
+    };
+    
+    const pagoData = {
+      id_socio: idSocio,
+      tipo_membresia: tipoMembresia,
+      monto: precios[tipoMembresia],
+      fecha_inicio: fechaInicioInput || new Date().toISOString().split('T')[0],
+      metodo_pago: metodoPago,
+      observaciones: observaciones
+    };
+    
     try {
-      const result = await ipcRenderer.invoke("buscar-socios", query);
+      const result = await ipcRenderer.invoke("registrar-pago", pagoData);
       
       if (result.success) {
-        this.renderSocios(result.socios);
+        this.mostrarExito("Pago registrado correctamente");
+        this.cerrarModalPago();
+        await this.loadSocios();
+        await this.loadEstadisticas();
+      } else {
+        this.mostrarError(result.message || "Error al registrar pago");
       }
     } catch (error) {
-      console.error("Error buscando socios:", error);
+      console.error("Error al confirmar pago:", error);
+      this.mostrarError("Error al registrar pago");
     }
-  }
-
-  filtrarPorEstado(estado) {
-    if (!estado) {
-      this.renderSocios(this.socios);
-      return;
-    }
-
-    const sociosFiltrados = this.socios.filter(socio => socio.estado === estado);
-    this.renderSocios(sociosFiltrados);
   }
 
   async registrarAsistencia(idSocio) {
     try {
-      const result = await ipcRenderer.invoke("registrar-asistencia", parseInt(idSocio));
+      const result = await ipcRenderer.invoke("registrar-asistencia", idSocio);
       
       if (result.success) {
         this.mostrarExito(result.message);
@@ -620,11 +630,15 @@ class SociosManager {
         if (result.vencido) {
           const renovar = await ipcRenderer.invoke("show-confirmation", {
             title: "Membresía Vencida",
-            message: `${result.message}\n\n¿Deseas renovar la membresía?`
+            message: `${result.message}\n\n¿Deseas registrar un pago?`
           });
           
           if (renovar) {
-            this.renovarMembresia(idSocio);
+            const socio = this.socios.find(s => s.id_socio === idSocio);
+            if (socio) {
+              this.socioActual = socio;
+              this.abrirModalPago();
+            }
           }
         } else {
           this.mostrarError(result.message);
@@ -636,128 +650,74 @@ class SociosManager {
     }
   }
 
-  editarSocio(idSocio) {
-    // Por implementar
-    console.log("Editar socio:", idSocio);
-    this.mostrarInfo("Funcionalidad en desarrollo");
+  async eliminarSocio(idSocio) {
+    const confirmado = await ipcRenderer.invoke("show-confirmation", {
+      title: "Eliminar Socio",
+      message: "¿Estás seguro de que deseas eliminar este socio? Esta acción no se puede deshacer."
+    });
+
+    if (!confirmado) return;
+
+    try {
+      const result = await ipcRenderer.invoke("eliminar-socio", idSocio);
+      
+      if (result.success) {
+        this.mostrarExito("Socio eliminado correctamente");
+        await this.loadSocios();
+        await this.loadEstadisticas();
+      } else {
+        this.mostrarError(result.message || "Error al eliminar socio");
+      }
+    } catch (error) {
+      console.error("Error al eliminar socio:", error);
+      this.mostrarError("Error al eliminar socio");
+    }
   }
 
-  async renovarMembresia(idSocio) {
-    const socio = this.socios.find(s => s.id_socio === parseInt(idSocio));
-    if (!socio) return;
-
-    this.socioActual = socio;
-    
-    // Abrir modal de renovación
-    const modal = document.getElementById("modalRenovacion");
-    const nombreSocio = document.getElementById("nombreSocioRenovacion");
-    const estadoActual = document.getElementById("estadoActualRenovacion");
-    const fechaVencimiento = document.getElementById("fechaVencimientoActual");
-    
-    if (nombreSocio) nombreSocio.textContent = socio.nombre;
-    if (estadoActual) {
-      const estado = socio.estado === 'activo' ? 'Activo ✅' : 'Vencido ❌';
-      estadoActual.textContent = estado;
-      estadoActual.style.color = socio.estado === 'activo' ? 'var(--success-color)' : 'var(--error-color)';
-    }
-    
-    if (fechaVencimiento) {
-      const fecha = socio.fecha_vencimiento 
-        ? new Date(socio.fecha_vencimiento).toLocaleDateString('es-ES')
-        : 'Sin registro';
-      fechaVencimiento.textContent = fecha;
+  async buscarSocios(query) {
+    if (!query.trim()) {
+      this.renderTabla(this.socios);
+      return;
     }
 
-    // Establecer fecha de renovación como hoy
-    const fechaRenovacion = document.querySelector('[name="fecha_renovacion"]');
-    if (fechaRenovacion) {
-      fechaRenovacion.value = new Date().toISOString().split('T')[0];
+    try {
+      const result = await ipcRenderer.invoke("buscar-socios", query);
+      
+      if (result.success) {
+        this.renderTabla(result.socios);
+      }
+    } catch (error) {
+      console.error("Error buscando socios:", error);
     }
-
-    // Calcular nueva fecha de vencimiento al cambiar tipo de membresía
-    this.calcularNuevaFechaVencimiento();
-
-    modal.classList.add("active");
   }
 
-  verDetalleSocio(idSocio) {
-    const socio = this.socios.find(s => s.id_socio === parseInt(idSocio));
-    if (!socio) return;
+  filtrarPorEstado(estado) {
+    if (!estado) {
+      this.renderTabla(this.socios);
+      return;
+    }
 
-    const modal = document.getElementById("modalDetalleSocio");
-    const content = document.getElementById("detalleSocioContent");
+    let sociosFiltrados = [];
     
-    const fechaIngreso = new Date(socio.fecha_ingreso).toLocaleDateString('es-ES');
-    const fechaVencimiento = socio.fecha_vencimiento 
-      ? new Date(socio.fecha_vencimiento).toLocaleDateString('es-ES')
-      : 'Sin registro';
-
-    content.innerHTML = `
-      <div style="padding: var(--spacing-lg);">
-        <div style="text-align: center; margin-bottom: var(--spacing-lg);">
-          <div style="width: 100px; height: 100px; border-radius: 50%; 
-                      background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
-                      display: inline-flex; align-items: center; justify-content: center;
-                      font-size: 3rem; color: white;">
-            ${socio.nombre.charAt(0).toUpperCase()}
-          </div>
-          <h2 style="margin-top: var(--spacing-md);">${socio.nombre}</h2>
-          <p style="color: var(--text-secondary);">ID: ${socio.id_socio.toString().padStart(4, '0')}</p>
-        </div>
-
-        <div style="display: grid; gap: var(--spacing-md);">
-          <div class="socio-info-row">
-            <strong>Estado:</strong>
-            <span class="estado-badge ${socio.estado === 'activo' ? 'estado-activo' : 'estado-vencido'}">
-              ${socio.estado}
-            </span>
-          </div>
-          
-          <div class="socio-info-row">
-            <strong>Teléfono:</strong>
-            <span>${socio.celular}</span>
-          </div>
-          
-          <div class="socio-info-row">
-            <strong>Turno:</strong>
-            <span>${socio.tipo_turno}</span>
-          </div>
-          
-          <div class="socio-info-row">
-            <strong>Fecha de Ingreso:</strong>
-            <span>${fechaIngreso}</span>
-          </div>
-          
-          <div class="socio-info-row">
-            <strong>Fecha de Vencimiento:</strong>
-            <span>${fechaVencimiento}</span>
-          </div>
-          
-          ${socio.dias_restantes >= 0 ? `
-            <div class="socio-info-row">
-              <strong>Días Restantes:</strong>
-              <span class="dias-restantes ${socio.dias_restantes <= 7 ? 'advertencia' : 'bien'}">
-                ${socio.dias_restantes} días
-              </span>
-            </div>
-          ` : ''}
-          
-          ${socio.instituto ? `
-            <div class="socio-info-row">
-              <strong>Instituto:</strong>
-              <span>🎓 ${socio.instituto}</span>
-            </div>
-          ` : ''}
-        </div>
-      </div>
-    `;
-
-    modal.classList.add("active");
+    switch(estado) {
+      case 'activo':
+        sociosFiltrados = this.socios.filter(s => s.dias_restantes > 1);
+        break;
+      case 'vencido':
+        sociosFiltrados = this.socios.filter(s => s.dias_restantes < 0 || !s.fecha_vencimiento);
+        break;
+      case 'proximo-vencer':
+        sociosFiltrados = this.socios.filter(s => s.dias_restantes >= 0 && s.dias_restantes <= 1);
+        break;
+    }
+    
+    this.renderTabla(sociosFiltrados);
   }
 
-  exportarSocios() {
-    console.log("Exportar socios");
-    this.mostrarInfo("Funcionalidad de exportación en desarrollo");
+  getMesNombre(mes) {
+    const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
+                   'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+    return meses[mes];
   }
 
   async navigateToPage(page) {
@@ -785,20 +745,10 @@ class SociosManager {
   }
 
   mostrarError(mensaje) {
-    // Implementar notificación de error
-    console.error(mensaje);
     alert("Error: " + mensaje);
   }
 
   mostrarExito(mensaje) {
-    // Implementar notificación de éxito
-    console.log(mensaje);
-    alert(mensaje);
-  }
-
-  mostrarInfo(mensaje) {
-    // Implementar notificación de información
-    console.log(mensaje);
     alert(mensaje);
   }
 }

@@ -324,6 +324,36 @@ ipcMain.handle("buscar-socios", async (event, query) => {
   }
 });
 
+ipcMain.handle("registrar-pago", async (event, pagoData) => {
+  try {
+    if (!currentUser) {
+      return { success: false, message: "No hay usuario autenticado" };
+    }
+    return await SociosService.registrarPago(pagoData, currentUser.id);
+  } catch (error) {
+    console.error("Error al registrar pago:", error);
+    return { success: false, message: "Error al registrar pago" };
+  }
+});
+
+ipcMain.handle("get-historial-pagos", async (event, idSocio) => {
+  try {
+    return await SociosService.getHistorialPagos(idSocio);
+  } catch (error) {
+    console.error("Error al obtener historial de pagos:", error);
+    return { success: false, message: "Error al cargar historial" };
+  }
+});
+
+ipcMain.handle("eliminar-socio", async (event, idSocio) => {
+  try {
+    return await SociosService.eliminarSocio(idSocio);
+  } catch (error) {
+    console.error("Error al eliminar socio:", error);
+    return { success: false, message: "Error al eliminar socio" };
+  }
+});
+
 // ============================================================
 // HANDLERS IPC - Ventanas y Diálogos
 // ============================================================

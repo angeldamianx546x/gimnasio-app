@@ -1,285 +1,425 @@
+/* Estilos para la tabla de socios */
 .socios-container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
+    max-width: 1400px;
+    margin: 0 auto;
+}
 
-        .socios-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: var(--spacing-xl);
-            padding: var(--spacing-lg);
-            background-color: var(--bg-primary);
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow-sm);
-        }
+.socios-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-xl);
+    padding: var(--spacing-lg);
+    background-color: var(--bg-primary);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+}
 
-        .search-filter-bar {
-            display: grid;
-            grid-template-columns: 1fr auto auto;
-            gap: var(--spacing-md);
-            margin-bottom: var(--spacing-lg);
-            padding: var(--spacing-lg);
-            background-color: var(--bg-primary);
-            border-radius: var(--radius-lg);
-        }
+.search-filter-bar {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+    padding: var(--spacing-lg);
+    background-color: var(--bg-primary);
+    border-radius: var(--radius-lg);
+}
 
-        .search-box {
-            position: relative;
-        }
+.search-box {
+    position: relative;
+}
 
-        .search-box input {
-            width: 100%;
-            padding: var(--spacing-md) var(--spacing-md) var(--spacing-md) 40px;
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-md);
-            font-size: var(--font-size-base);
-        }
+.search-box input {
+    width: 100%;
+    padding: var(--spacing-md) var(--spacing-md) var(--spacing-md) 40px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-base);
+}
 
-        .search-box::before {
-            content: '🔍';
-            position: absolute;
-            left: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 1.2rem;
-        }
+.search-box::before {
+    content: '🔍';
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.2rem;
+}
 
-        .socios-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: var(--spacing-lg);
-        }
+/* Tabla de socios */
+.socios-table-container {
+    background-color: var(--bg-primary);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    box-shadow: var(--shadow-sm);
+    overflow-x: auto;
+}
 
-        .socio-card {
-            background-color: var(--bg-primary);
-            border-radius: var(--radius-lg);
-            padding: var(--spacing-lg);
-            box-shadow: var(--shadow-sm);
-            border: 1px solid var(--border-color);
-            transition: all var(--transition-normal);
-            cursor: pointer;
-        }
+.table-socios {
+    width: 100%;
+    border-collapse: collapse;
+}
 
-        .socio-card:hover {
-            transform: translateY(-4px);
-            box-shadow: var(--shadow-lg);
-            border-color: var(--primary-color);
-        }
+.table-socios thead th {
+    background-color: var(--bg-dark);
+    color: var(--text-white);
+    padding: var(--spacing-md);
+    text-align: left;
+    font-weight: 600;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
 
-        .socio-card-header {
-            display: flex;
-            gap: var(--spacing-md);
-            margin-bottom: var(--spacing-md);
-            padding-bottom: var(--spacing-md);
-            border-bottom: 1px solid var(--border-color);
-        }
+.table-socios tbody tr {
+    border-bottom: 1px solid var(--border-color);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
 
-        .socio-foto {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            color: white;
-            flex-shrink: 0;
-        }
+.table-socios tbody tr:hover {
+    background-color: var(--bg-secondary);
+    transform: scale(1.01);
+}
 
-        .socio-info-header {
-            flex: 1;
-        }
+.table-socios tbody td {
+    padding: var(--spacing-md);
+    vertical-align: middle;
+}
 
-        .socio-nombre {
-            font-size: var(--font-size-lg);
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: var(--spacing-xs);
-        }
+/* Estados de color según pago */
+.table-socios tbody tr.estado-activo {
+    background-color: rgba(220, 252, 231, 0.3);
+}
 
-        .socio-codigo {
-            font-size: var(--font-size-sm);
-            color: var(--text-secondary);
-            font-family: monospace;
-        }
+.table-socios tbody tr.estado-vencido {
+    background-color: rgba(254, 242, 242, 0.3);
+}
 
-        .socio-card-body {
-            display: flex;
-            flex-direction: column;
-            gap: var(--spacing-sm);
-        }
+.table-socios tbody tr.estado-proximo-vencer {
+    background-color: rgba(255, 251, 235, 0.3);
+}
 
-        .socio-info-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: var(--font-size-sm);
-        }
+.estado-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    text-transform: uppercase;
+    gap: var(--spacing-xs);
+}
 
-        .socio-info-label {
-            color: var(--text-secondary);
-        }
+.estado-badge.activo {
+    background-color: #dcfce7;
+    color: #166534;
+}
 
-        .socio-info-value {
-            color: var(--text-primary);
-            font-weight: 500;
-        }
+.estado-badge.activo::before {
+    content: '✓';
+}
 
-        .estado-badge {
-            display: inline-flex;
-            align-items: center;
-            padding: var(--spacing-xs) var(--spacing-sm);
-            border-radius: var(--radius-md);
-            font-size: var(--font-size-xs);
-            font-weight: 600;
-            text-transform: uppercase;
-        }
+.estado-badge.vencido {
+    background-color: #fef2f2;
+    color: #991b1b;
+}
 
-        .estado-activo {
-            background-color: #dcfce7;
-            color: #166534;
-        }
+.estado-badge.vencido::before {
+    content: '✗';
+}
 
-        .estado-vencido {
-            background-color: #fef2f2;
-            color: #991b1b;
-        }
+.estado-badge.proximo-vencer {
+    background-color: #fffbeb;
+    color: #92400e;
+}
 
-        .estado-suspendido {
-            background-color: #fffbeb;
-            color: #92400e;
-        }
+.estado-badge.proximo-vencer::before {
+    content: '⚠';
+}
 
-        .dias-restantes {
-            font-weight: 600;
-        }
+/* Acciones de la tabla */
+.acciones-cell {
+    display: flex;
+    gap: var(--spacing-xs);
+}
 
-        .dias-restantes.critico {
-            color: var(--error-color);
-        }
+.btn-icon {
+    padding: var(--spacing-xs);
+    min-width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
 
-        .dias-restantes.advertencia {
-            color: var(--warning-color);
-        }
+.btn-icon:hover {
+    transform: scale(1.1);
+}
 
-        .dias-restantes.bien {
-            color: var(--success-color);
-        }
+/* Modal de detalles */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+}
 
-        .socio-card-actions {
-            display: flex;
-            gap: var(--spacing-sm);
-            margin-top: var(--spacing-md);
-            padding-top: var(--spacing-md);
-            border-top: 1px solid var(--border-color);
-        }
+.modal.active {
+    display: flex;
+}
 
-        .btn-icon {
-            padding: var(--spacing-sm);
-            min-width: 36px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+.modal-content {
+    background-color: var(--bg-primary);
+    border-radius: var(--radius-lg);
+    width: 90%;
+    max-width: 900px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: var(--shadow-lg);
+}
 
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-        }
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--spacing-lg);
+    border-bottom: 1px solid var(--border-color);
+    background-color: var(--bg-secondary);
+}
 
-        .modal.active {
-            display: flex;
-        }
+.modal-body {
+    padding: var(--spacing-lg);
+}
 
-        .modal-content {
-            background-color: var(--bg-primary);
-            border-radius: var(--radius-lg);
-            width: 90%;
-            max-width: 600px;
-            max-height: 85vh;
-            overflow-y: auto;
-            box-shadow: var(--shadow-lg);
-        }
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--spacing-md);
+    padding: var(--spacing-lg);
+    border-top: 1px solid var(--border-color);
+}
 
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: var(--spacing-md);
-        }
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--text-secondary);
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-md);
+    transition: all var(--transition-fast);
+}
 
-        .form-group.full-width {
-            grid-column: 1 / -1;
-        }
+.modal-close:hover {
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
+}
 
-        .estudiante-fields {
-            display: none;
-            grid-column: 1 / -1;
-            padding: var(--spacing-md);
-            background-color: var(--bg-secondary);
-            border-radius: var(--radius-md);
-            margin-top: var(--spacing-sm);
-        }
+/* Detalle de socio */
+.detalle-socio-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-lg);
+}
 
-        .estudiante-fields.active {
-            display: block;
-        }
+.detalle-section {
+    background-color: var(--bg-secondary);
+    padding: var(--spacing-lg);
+    border-radius: var(--radius-md);
+}
 
-        .qr-preview {
-            text-align: center;
-            padding: var(--spacing-lg);
-            background-color: var(--bg-secondary);
-            border-radius: var(--radius-md);
-        }
+.detalle-section h4 {
+    margin-bottom: var(--spacing-md);
+    color: var(--primary-color);
+    border-bottom: 2px solid var(--primary-color);
+    padding-bottom: var(--spacing-sm);
+}
 
-        .qr-preview canvas {
-            max-width: 200px;
-            margin: 0 auto;
-        }
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    padding: var(--spacing-sm) 0;
+    border-bottom: 1px solid var(--border-color);
+}
 
-        .stats-bar {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: var(--spacing-md);
-            margin-bottom: var(--spacing-lg);
-        }
+.info-row:last-child {
+    border-bottom: none;
+}
 
-        .stat-box {
-            background-color: var(--bg-primary);
-            padding: var(--spacing-md);
-            border-radius: var(--radius-md);
-            text-align: center;
-            border: 1px solid var(--border-color);
-        }
+.info-label {
+    color: var(--text-secondary);
+    font-weight: 500;
+}
 
-        .stat-number {
-            font-size: var(--font-size-2xl);
-            font-weight: 700;
-            color: var(--primary-color);
-        }
+.info-value {
+    color: var(--text-primary);
+    font-weight: 600;
+}
 
-        .stat-label {
-            font-size: var(--font-size-sm);
-            color: var(--text-secondary);
-            margin-top: var(--spacing-xs);
-        }
+/* Tabla de pagos */
+.pagos-table {
+    width: 100%;
+    margin-top: var(--spacing-md);
+}
 
-        .empty-state {
-            text-align: center;
-            padding: var(--spacing-2xl);
-            color: var(--text-light);
-        }
+.pagos-table th,
+.pagos-table td {
+    padding: var(--spacing-sm);
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
 
-        .empty-state-icon {
-            font-size: 4rem;
-            margin-bottom: var(--spacing-md);
-        }
+.pagos-table th {
+    background-color: var(--bg-tertiary);
+    font-weight: 600;
+}
+
+/* Formulario de socio */
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-md);
+}
+
+.form-group.full-width {
+    grid-column: 1 / -1;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: var(--spacing-sm);
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: var(--spacing-md);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-base);
+    transition: all var(--transition-fast);
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* Estadísticas */
+.stats-bar {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+}
+
+.stat-box {
+    background-color: var(--bg-primary);
+    padding: var(--spacing-md);
+    border-radius: var(--radius-md);
+    text-align: center;
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-sm);
+}
+
+.stat-number {
+    font-size: var(--font-size-2xl);
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.stat-label {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    margin-top: var(--spacing-xs);
+}
+
+/* Empty state */
+.empty-state {
+    text-align: center;
+    padding: var(--spacing-2xl);
+    color: var(--text-light);
+}
+
+.empty-state-icon {
+    font-size: 4rem;
+    margin-bottom: var(--spacing-md);
+}
+
+/* Modal de pago */
+.pago-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-md);
+}
+
+.monto-calculado {
+    background-color: var(--bg-secondary);
+    padding: var(--spacing-lg);
+    border-radius: var(--radius-md);
+    text-align: center;
+    margin: var(--spacing-md) 0;
+}
+
+.monto-calculado .monto-label {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-xs);
+}
+
+.monto-calculado .monto-valor {
+    font-size: var(--font-size-3xl);
+    font-weight: 700;
+    color: var(--success-color);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .detalle-socio-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .pago-form-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .search-filter-bar {
+        grid-template-columns: 1fr;
+    }
+    
+    .socios-table-container {
+        overflow-x: scroll;
+    }
+    
+    .table-socios {
+        min-width: 800px;
+    }
+}
+
