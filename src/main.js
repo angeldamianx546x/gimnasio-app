@@ -98,7 +98,7 @@ function createMenu() {
               type: "info",
               title: "Acerca de Gimnasio App",
               message: "Sistema de Gestión para Gimnasio",
-              detail: `Versión 1.0.0\nConectado a MySQL\nEstado BD: ${isDbConnected ? 'Conectado ✅' : 'Desconectado ❌'}`,
+              detail: `Versión 1.0.0\nConectado a MySQL\nEstado BD: ${isDbConnected ? 'Conectado' : 'Desconectado'}`,
             });
           },
         },
@@ -294,6 +294,18 @@ ipcMain.handle("registrar-socio", async (event, socioData) => {
   }
 });
 
+ipcMain.handle("actualizar-socio", async (event, socioData) => {
+  try {
+    if (!currentUser) {
+      return { success: false, message: "No hay usuario autenticado" };
+    }
+    return await SociosService.actualizarSocio(socioData);
+  } catch (error) {
+    console.error("Error al actualizar socio:", error);
+    return { success: false, message: "Error al actualizar socio" };
+  }
+});
+
 ipcMain.handle("registrar-asistencia", async (event, idSocio) => {
   try {
     if (!currentUser) {
@@ -395,5 +407,5 @@ process.on("uncaughtException", (error) => {
   );
 });
 
-console.log("🚀 Aplicación Gimnasio iniciada correctamente");
-console.log("📊 Estado de BD:", isDbConnected ? "Conectado ✅" : "Desconectado ❌");
+console.log("Aplicación Gimnasio iniciada correctamente");
+console.log("Estado de BD:", isDbConnected ? "Conectado" : "Desconectado");

@@ -6,6 +6,7 @@ class SociosManager {
     this.socios = [];
     this.socioActual = null;
     this.pagosActuales = [];
+    this.modoEdicion = false;
     this.init();
   }
 
@@ -279,10 +280,10 @@ class SociosManager {
                     title="Registrar Pago">
               💰
             </button>
-            <button class="btn btn-success btn-icon btn-asistencia" 
+            <button class="btn btn-warning btn-icon btn-editar" 
                     data-id="${socio.id_socio}" 
-                    title="Registrar Asistencia">
-              ✓
+                    title="Editar">
+              ✏️
             </button>
             <button class="btn btn-error btn-icon btn-eliminar" 
                     data-id="${socio.id_socio}" 
@@ -309,12 +310,15 @@ class SociosManager {
       });
     });
 
-    // Botones de asistencia
-    document.querySelectorAll(".btn-asistencia").forEach(btn => {
-      btn.addEventListener("click", async (e) => {
+    // Botones de editar
+    document.querySelectorAll(".btn-editar").forEach(btn => {
+      btn.addEventListener("click", (e) => {
         e.stopPropagation();
         const idSocio = parseInt(btn.dataset.id);
-        await this.registrarAsistencia(idSocio);
+        const socio = this.socios.find(s => s.id_socio === idSocio);
+        if (socio) {
+          this.editarSocio(socio);
+        }
       });
     });
 
@@ -428,6 +432,7 @@ class SociosManager {
 
   abrirModalNuevo() {
     this.socioActual = null;
+    this.modoEdicion = false;
     
     const form = document.getElementById("formSocio");
     if (form) form.reset();
@@ -444,7 +449,53 @@ class SociosManager {
       institutoField.style.display = "none";
     }
     
+    // Mostrar campos de membresía para nuevo socio
+    document.querySelectorAll('.membresia-field').forEach(field => {
+      field.style.display = "block";
+      const input = field.querySelector('input, select');
+      if (input) input.setAttribute('required', 'required');
+    });
+    
     document.getElementById("modalSocioTitle").textContent = "Nuevo Socio";
+    document.getElementById("modalSocio").classList.add("active");
+  }
+
+  editarSocio(socio) {
+    this.socioActual = socio;
+    this.modoEdicion = true;
+    
+    const form = document.getElementById("formSocio");
+    if (form) {
+      // Llenar el formulario con los datos del socio
+      form.querySelector('[name="nombre"]').value = socio.nombre;
+      form.querySelector('[name="celular"]').value = socio.celular || '';
+      form.querySelector('[name="tipo_turno"]').value = socio.tipo_turno;
+      form.querySelector('[name="fecha_ingreso"]').value = socio.fecha_ingreso.split('T')[0];
+      
+      // Manejo de estudiante e instituto
+      const checkEstudiante = form.querySelector('[name="es_estudiante"]');
+      const institutoField = document.getElementById("institutoField");
+      const institutoInput = form.querySelector('[name="instituto"]');
+      
+      if (socio.instituto) {
+        checkEstudiante.checked = true;
+        institutoField.style.display = "block";
+        institutoInput.value = socio.instituto;
+      } else {
+        checkEstudiante.checked = false;
+        institutoField.style.display = "none";
+        institutoInput.value = '';
+      }
+      
+      // Ocultar campos de membresía cuando se edita (se hace pago por separado)
+      document.querySelectorAll('.membresia-field').forEach(field => {
+        field.style.display = "none";
+        const input = field.querySelector('input, select');
+        if (input) input.removeAttribute('required');
+      });
+    }
+    
+    document.getElementById("modalSocioTitle").textContent = "Editar Socio";
     document.getElementById("modalSocio").classList.add("active");
   }
 
@@ -458,7 +509,10 @@ class SociosManager {
   }
 
   abrirModalPago() {
-    if (!this.socioActual) return;
+    if (!this.socioActual) {
+      this.mostrarError("No se ha seleccionado ningún socio");
+      return;
+    }
     
     // Cerrar modal de detalle si está abierto
     this.cerrarModalDetalle();
@@ -539,8 +593,7 @@ class SociosManager {
     const form = document.getElementById("formSocio");
     const formData = new FormData(form);
     
-    if (!formData.get("nombre") || !formData.get("celular") || 
-        !formData.get("fecha_ingreso") || !formData.get("tipo_membresia")) {
+    if (!formData.get("nombre") || !formData.get("celular") || !formData.get("fecha_ingreso")) {
       this.mostrarError("Por favor completa todos los campos obligatorios");
       return;
     }
@@ -551,21 +604,34 @@ class SociosManager {
       tipo_turno: formData.get("tipo_turno"),
       instituto: formData.get("es_estudiante") ? formData.get("instituto") : null,
       fecha_ingreso: formData.get("fecha_ingreso"),
-      mes_inscripcion: this.getMesNombre(new Date(formData.get("fecha_ingreso")).getMonth()),
-      tipo_membresia: formData.get("tipo_membresia"),
-      monto_pago: parseFloat(formData.get("monto_pago"))
+      mes_inscripcion: this.getMesNombre(new Date(formData.get("fecha_ingreso")).getMonth())
     };
 
     try {
-      const result = await ipcRenderer.invoke("registrar-socio", socioData);
+      let result;
+      
+      if (this.modoEdicion && this.socioActual) {
+        // Actualizar socio existente
+        socioData.id_socio = this.socioActual.id_socio;
+        result = await ipcRenderer.invoke("actualizar-socio", socioData);
+      } else {
+        // Registrar nuevo socio (con pago inicial)
+        if (!formData.get("tipo_membresia")) {
+          this.mostrarError("Selecciona el tipo de membresía");
+          return;
+        }
+        socioData.tipo_membresia = formData.get("tipo_membresia");
+        socioData.monto_pago = parseFloat(formData.get("monto_pago"));
+        result = await ipcRenderer.invoke("registrar-socio", socioData);
+      }
       
       if (result.success) {
-        this.mostrarExito("Socio registrado correctamente");
+        this.mostrarExito(this.modoEdicion ? "Socio actualizado correctamente" : "Socio registrado correctamente");
         this.cerrarModalSocio();
         await this.loadSocios();
         await this.loadEstadisticas();
       } else {
-        this.mostrarError(result.message || "Error al registrar socio");
+        this.mostrarError(result.message || "Error al guardar socio");
       }
     } catch (error) {
       console.error("Error al guardar socio:", error);
@@ -617,36 +683,6 @@ class SociosManager {
     } catch (error) {
       console.error("Error al confirmar pago:", error);
       this.mostrarError("Error al registrar pago");
-    }
-  }
-
-  async registrarAsistencia(idSocio) {
-    try {
-      const result = await ipcRenderer.invoke("registrar-asistencia", idSocio);
-      
-      if (result.success) {
-        this.mostrarExito(result.message);
-      } else {
-        if (result.vencido) {
-          const renovar = await ipcRenderer.invoke("show-confirmation", {
-            title: "Membresía Vencida",
-            message: `${result.message}\n\n¿Deseas registrar un pago?`
-          });
-          
-          if (renovar) {
-            const socio = this.socios.find(s => s.id_socio === idSocio);
-            if (socio) {
-              this.socioActual = socio;
-              this.abrirModalPago();
-            }
-          }
-        } else {
-          this.mostrarError(result.message);
-        }
-      }
-    } catch (error) {
-      console.error("Error al registrar asistencia:", error);
-      this.mostrarError("Error al registrar asistencia");
     }
   }
 
@@ -734,7 +770,7 @@ class SociosManager {
       message: "¿Estás seguro de que quieres cerrar sesión?",
     });
 
-    if (confirmed) {
+    if (confirmed){
       try {
         await ipcRenderer.invoke("logout");
       } catch (error) {
@@ -757,3 +793,5 @@ class SociosManager {
 document.addEventListener("DOMContentLoaded", () => {
   new SociosManager();
 });
+
+      

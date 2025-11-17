@@ -106,6 +106,37 @@ class SociosService {
     }
 
     /**
+     * Actualizar información de un socio
+     */
+    static async actualizarSocio(socioData) {
+        try {
+            const pool = getPool();
+            const {
+                id_socio,
+                nombre,
+                celular,
+                tipo_turno,
+                instituto,
+                fecha_ingreso,
+                mes_inscripcion
+            } = socioData;
+
+            await pool.query(
+                'UPDATE socios SET nombre = ?, celular = ?, tipo_turno = ?, instituto = ?, fecha_ingreso = ?, mes_inscripcion = ? WHERE id_socio = ?',
+                [nombre, celular, tipo_turno, instituto || null, fecha_ingreso, mes_inscripcion, id_socio]
+            );
+
+            return {
+                success: true,
+                message: 'Socio actualizado correctamente'
+            };
+        } catch (error) {
+            console.error('Error al actualizar socio:', error);
+            return { success: false, message: 'Error al actualizar socio' };
+        }
+    }
+
+    /**
      * Registrar un pago para un socio
      */
     static async registrarPago(pagoData, userId) {
@@ -187,59 +218,6 @@ class SociosService {
         } catch (error) {
             console.error('Error al obtener historial de pagos:', error);
             return { success: false, message: 'Error al cargar historial' };
-        }
-    }
-
-    /**
-     * Registrar asistencia de un socio
-     */
-    static async registrarAsistencia(idSocio, userId) {
-        try {
-            const pool = getPool();
-            const fecha = new Date().toISOString().split('T')[0];
-            const hora = new Date().toTimeString().split(' ')[0];
-
-            // Verificar si el socio está activo
-            const [socio] = await pool.query(`
-                SELECT s.nombre, p.fecha_fin
-                FROM socios s
-                LEFT JOIN (
-                    SELECT id_socio, MAX(fecha_fin) as fecha_fin
-                    FROM pagos
-                    GROUP BY id_socio
-                ) p ON s.id_socio = p.id_socio
-                WHERE s.id_socio = ?
-            `, [idSocio]);
-
-            if (socio.length === 0) {
-                return { success: false, message: 'Socio no encontrado' };
-            }
-
-            const fechaVencimiento = socio[0].fecha_fin ? new Date(socio[0].fecha_fin) : null;
-            const hoy = new Date();
-            hoy.setHours(0, 0, 0, 0);
-
-            if (!fechaVencimiento || fechaVencimiento < hoy) {
-                return {
-                    success: false,
-                    message: 'La membresía del socio ha vencido',
-                    vencido: true
-                };
-            }
-
-            // Registrar asistencia
-            await pool.query(
-                'INSERT INTO asistencias (id_socio, fecha, hora_entrada, registrada_por) VALUES (?, ?, ?, ?)',
-                [idSocio, fecha, hora, userId]
-            );
-
-            return {
-                success: true,
-                message: `Asistencia registrada para ${socio[0].nombre}`
-            };
-        } catch (error) {
-            console.error('Error al registrar asistencia:', error);
-            return { success: false, message: 'Error al registrar asistencia' };
         }
     }
 
