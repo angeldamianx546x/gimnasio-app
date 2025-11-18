@@ -248,15 +248,56 @@ ipcMain.handle("add-producto", async (event, productData) => {
   }
 });
 
-ipcMain.handle("update-stock", async (event, productId, newStock) => {
+// ipcMain.handle("update-stock", async (event, productId, newStock) => {
+//   try {
+//     if (!currentUser) {
+//       return { success: false, message: "No hay usuario autenticado" };
+//     }
+//     return await ProductosService.updateStock(productId, newStock, currentUser.id);
+//   } catch (error) {
+//     console.error("Error al actualizar stock:", error);
+//     return { success: false, message: "Error al actualizar stock" };
+//   }
+// });
+
+// Agregar estos handlers en la sección de HANDLERS IPC - Productos
+
+ipcMain.handle("actualizar-producto", async (event, productData) => {
   try {
     if (!currentUser) {
       return { success: false, message: "No hay usuario autenticado" };
     }
-    return await ProductosService.updateStock(productId, newStock, currentUser.id);
+    return await ProductosService.updateProduct(productData, currentUser.id);
   } catch (error) {
-    console.error("Error al actualizar stock:", error);
-    return { success: false, message: "Error al actualizar stock" };
+    console.error("Error al actualizar producto:", error);
+    return { success: false, message: "Error al actualizar producto" };
+  }
+});
+
+ipcMain.handle("eliminar-producto", async (event, productId) => {
+  try {
+    return await ProductosService.deleteProduct(productId);
+  } catch (error) {
+    console.error("Error al eliminar producto:", error);
+    return { success: false, message: "Error al eliminar producto" };
+  }
+});
+
+ipcMain.handle("get-low-stock-products", async () => {
+  try {
+    return await ProductosService.getLowStockProducts();
+  } catch (error) {
+    console.error("Error al obtener productos con stock bajo:", error);
+    return { success: false, message: "Error al cargar productos" };
+  }
+});
+
+ipcMain.handle("get-out-of-stock-products", async () => {
+  try {
+    return await ProductosService.getOutOfStockProducts();
+  } catch (error) {
+    console.error("Error al obtener productos sin stock:", error);
+    return { success: false, message: "Error al cargar productos" };
   }
 });
 

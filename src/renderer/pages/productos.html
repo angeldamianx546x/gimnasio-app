@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gimnasio - Productos</title>
     <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/productos.css">
 </head>
 <body>
     <div class="app-container">
@@ -29,9 +30,146 @@
         </aside>
 
         <main class="main-content">
-            <h2>📦 Gestión de Productos</h2>
-            <p>Funcionalidad en desarrollo...</p>
+            <div class="productos-container">
+                <!-- Header -->
+                <div class="productos-header">
+                    <h2>📦 Gestión de Productos</h2>
+                    <button class="btn btn-primary" id="btnNuevoProducto">
+                        ➕ Nuevo Producto
+                    </button>
+                </div>
+
+                <!-- Estadísticas -->
+                <div class="stats-bar">
+                    <div class="stat-box">
+                        <div class="stat-number" id="statTotalProductos">0</div>
+                        <div class="stat-label">Total Productos</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-number" id="statStockBajo">0</div>
+                        <div class="stat-label">Stock Bajo</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-number" id="statSinStock">0</div>
+                        <div class="stat-label">Sin Stock</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-number" id="statValorInventario">$0</div>
+                        <div class="stat-label">Valor Inventario</div>
+                    </div>
+                </div>
+
+                <!-- Búsqueda -->
+                <div class="search-filter-bar">
+                    <div class="search-box">
+                        <input type="text" id="searchProductos" placeholder="Buscar productos...">
+                    </div>
+                    <button class="btn btn-secondary" id="btnRecargar">
+                        🔄 Recargar
+                    </button>
+                </div>
+
+                <!-- Tabla de productos -->
+                <div class="productos-table-container">
+                    <table class="table-productos" id="tablaProductos">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre</th>
+                                <th>Precio</th>
+                                <th>Stock</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="productosTableBody">
+                            <tr>
+                                <td colspan="6" style="text-align: center; padding: var(--spacing-xl);">
+                                    <div class="empty-state">
+                                        <div class="empty-state-icon">📦</div>
+                                        <p>Cargando productos...</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </main>
+    </div>
+
+    <!-- Modal: Nuevo/Editar Producto -->
+    <div class="modal" id="modalProducto">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalProductoTitle">Nuevo Producto</h3>
+                <button class="modal-close" id="btnCerrarModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="formProducto">
+                    <div class="form-group">
+                        <label>Nombre del Producto *</label>
+                        <input type="text" name="nombre" required placeholder="Ej: Proteína Whey">
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Precio *</label>
+                            <input type="number" name="precio" step="0.01" min="0" required placeholder="0.00">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Stock Inicial *</label>
+                            <input type="number" name="stock" min="0" required placeholder="0">
+                        </div>
+                    </div>
+
+                    <div class="form-info">
+                        <p>ℹ️ Los campos marcados con * son obligatorios</p>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="btnCancelar">Cancelar</button>
+                <button class="btn btn-primary" id="btnGuardar">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Ajustar Stock -->
+    <div class="modal" id="modalStock">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>📊 Ajustar Stock</h3>
+                <button class="modal-close" id="btnCerrarModalStock">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="text-align: center; margin-bottom: var(--spacing-lg);">
+                    <h4 id="stockProductoNombre" style="color: var(--primary-color);">-</h4>
+                </div>
+
+                <div class="stock-info">
+                    <div class="stock-info-item">
+                        <span class="stock-info-label">Stock Actual:</span>
+                        <span class="stock-info-value" id="stockActual">0</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Nuevo Stock</label>
+                    <input type="number" id="stockNuevoInput" min="0" required>
+                </div>
+
+                <div class="stock-diferencia">
+                    <span>Diferencia: </span>
+                    <strong id="stockDiferencia">0</strong>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="btnCancelarStock">Cancelar</button>
+                <button class="btn btn-primary" id="btnGuardarStock">Guardar Stock</button>
+            </div>
+        </div>
     </div>
 
     <script src="../js/productos.js"></script>

@@ -1,0 +1,264 @@
+/* Estilos específicos para productos */
+.productos-container {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.productos-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-xl);
+    padding: var(--spacing-lg);
+    background-color: var(--bg-primary);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+}
+
+.productos-header h2 {
+    font-size: var(--font-size-2xl);
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+/* Barra de búsqueda y filtros */
+.search-filter-bar {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+    padding: var(--spacing-lg);
+    background-color: var(--bg-primary);
+    border-radius: var(--radius-lg);
+}
+
+.search-box {
+    position: relative;
+}
+
+.search-box input {
+    width: 100%;
+    padding: var(--spacing-md) var(--spacing-md) var(--spacing-md) 40px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-base);
+    transition: all var(--transition-fast);
+}
+
+.search-box input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.search-box::before {
+    content: '🔍';
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.2rem;
+}
+
+/* Tabla de productos */
+.productos-table-container {
+    background-color: var(--bg-primary);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    box-shadow: var(--shadow-sm);
+    overflow-x: auto;
+}
+
+.table-productos {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table-productos thead th {
+    background-color: var(--bg-dark);
+    color: var(--text-white);
+    padding: var(--spacing-md);
+    text-align: left;
+    font-weight: 600;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.table-productos tbody tr {
+    border-bottom: 1px solid var(--border-color);
+    transition: all var(--transition-fast);
+}
+
+.table-productos tbody tr:hover {
+    background-color: var(--bg-secondary);
+}
+
+.table-productos tbody td {
+    padding: var(--spacing-md);
+    vertical-align: middle;
+}
+
+/* Estados de stock */
+.table-productos tbody tr.stock-bajo {
+    background-color: rgba(255, 251, 235, 0.3);
+}
+
+.table-productos tbody tr.stock-alto {
+    background-color: rgba(220, 252, 231, 0.3);
+}
+
+/* Celda de precio */
+.precio-cell {
+    font-weight: 700;
+    color: var(--success-color);
+    font-size: var(--font-size-lg);
+}
+
+/* Control de stock en la tabla */
+.stock-control {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    justify-content: center;
+}
+
+.stock-btn {
+    width: 30px;
+    height: 30px;
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-secondary);
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-weight: 700;
+    transition: all var(--transition-fast);
+}
+
+.stock-btn:hover:not(:disabled) {
+    background-color: var(--primary-color);
+    color: var(--text-white);
+    border-color: var(--primary-color);
+    transform: scale(1.1);
+}
+
+.stock-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.stock-cantidad {
+    min-width: 50px;
+    text-align: center;
+    font-weight: 700;
+    font-size: var(--font-size-lg);
+}
+
+/* Acciones de la tabla */
+.acciones-cell {
+    display: flex;
+    gap: var(--spacing-xs);
+    justify-content: center;
+}
+
+/* Modal de stock */
+.stock-info {
+    background-color: var(--bg-secondary);
+    padding: var(--spacing-lg);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--spacing-lg);
+}
+
+.stock-info-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-sm) 0;
+}
+
+.stock-info-label {
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.stock-info-value {
+    font-size: var(--font-size-2xl);
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.stock-diferencia {
+    margin-top: var(--spacing-md);
+    padding: var(--spacing-md);
+    background-color: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    text-align: center;
+    font-size: var(--font-size-lg);
+}
+
+.stock-diferencia strong {
+    font-size: var(--font-size-xl);
+    font-weight: 700;
+}
+
+/* Información del formulario */
+.form-info {
+    margin-top: var(--spacing-lg);
+    padding: var(--spacing-md);
+    background-color: var(--bg-secondary);
+    border-left: 4px solid var(--info-color);
+    border-radius: var(--radius-sm);
+}
+
+.form-info p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .productos-header {
+        flex-direction: column;
+        gap: var(--spacing-md);
+        text-align: center;
+    }
+}
+
+@media (max-width: 768px) {
+    .search-filter-bar {
+        grid-template-columns: 1fr;
+    }
+
+    .productos-table-container {
+        overflow-x: scroll;
+    }
+
+    .table-productos {
+        min-width: 800px;
+    }
+
+    .stock-control {
+        flex-wrap: wrap;
+    }
+}
+
+/* Animaciones */
+@keyframes stockUpdate {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.2);
+        color: var(--success-color);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.stock-cantidad.updating {
+    animation: stockUpdate 0.3s ease-in-out;
+}
