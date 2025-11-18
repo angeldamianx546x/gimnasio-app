@@ -58,6 +58,7 @@
     top: 50%;
     transform: translateY(-50%);
     font-size: 1.2rem;
+    pointer-events: none;
 }
 
 /* Tabla de productos */
@@ -163,6 +164,57 @@
     justify-content: center;
 }
 
+/* MODAL CORREGIDO - Sin bloqueo de inputs */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    /* IMPORTANTE: No bloquear eventos en el overlay */
+    pointer-events: auto;
+}
+
+.modal.active {
+    display: flex;
+}
+
+.modal-content {
+    background: var(--bg-primary);
+    border-radius: var(--radius-lg);
+    width: 90%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: var(--shadow-lg);
+    position: relative;
+    /* IMPORTANTE: Permitir eventos en el contenido del modal */
+    pointer-events: auto;
+    z-index: 1001;
+}
+
+/* Asegurar que todos los inputs del modal sean interactivos */
+.modal-content input,
+.modal-content select,
+.modal-content textarea,
+.modal-content button {
+    pointer-events: auto !important;
+    user-select: auto !important;
+}
+
+/* Asegurar que los inputs no estén deshabilitados */
+.modal-content input:not([disabled]),
+.modal-content select:not([disabled]),
+.modal-content textarea:not([disabled]) {
+    opacity: 1;
+    cursor: text;
+}
+
 /* Modal de stock */
 .stock-info {
     background-color: var(--bg-secondary);
@@ -218,79 +270,7 @@
     font-size: var(--font-size-sm);
 }
 
-/* Responsive */
-@media (max-width: 1024px) {
-    .productos-header {
-        flex-direction: column;
-        gap: var(--spacing-md);
-        text-align: center;
-    }
-}
-
-@media (max-width: 768px) {
-    .search-filter-bar {
-        grid-template-columns: 1fr;
-    }
-
-    .productos-table-container {
-        overflow-x: scroll;
-    }
-
-    .table-productos {
-        min-width: 800px;
-    }
-
-    .stock-control {
-        flex-wrap: wrap;
-    }
-}
-
-/* Animaciones */
-@keyframes stockUpdate {
-    0% {
-        transform: scale(1);
-    }
-    50% {
-        transform: scale(1.2);
-        color: var(--success-color);
-    }
-    100% {
-        transform: scale(1);
-    }
-}
-
-.stock-cantidad.updating {
-    animation: stockUpdate 0.3s ease-in-out;
-}
-
-/* En productos.css o main.css */
-.modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    z-index: 1000;
-    align-items: center;
-    justify-content: center;
-}
-
-.modal.active {
-    display: flex;
-}
-
-.modal-content {
-    background: white;
-    border-radius: 8px;
-    width: 90%;
-    max-width: 500px;
-    max-height: 90vh;
-    overflow-y: auto;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
+/* Estadísticas */
 .stats-bar {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -331,45 +311,12 @@
     margin-bottom: var(--spacing-md);
 }
 
-/* Modal de pago */
-.pago-form-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: var(--spacing-md);
-}
-
-.monto-calculado {
-    background-color: var(--bg-secondary);
-    padding: var(--spacing-lg);
-    border-radius: var(--radius-md);
-    text-align: center;
-    margin: var(--spacing-md) 0;
-}
-
-.monto-calculado .monto-label {
-    font-size: var(--font-size-sm);
-    color: var(--text-secondary);
-    margin-bottom: var(--spacing-xs);
-}
-
-.monto-calculado .monto-valor {
-    font-size: var(--font-size-3xl);
-    font-weight: 700;
-    color: var(--success-color);
-}
-
 /* Responsive */
 @media (max-width: 1024px) {
-    .detalle-socio-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .form-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .pago-form-grid {
-        grid-template-columns: 1fr;
+    .productos-header {
+        flex-direction: column;
+        gap: var(--spacing-md);
+        text-align: center;
     }
 }
 
@@ -377,12 +324,39 @@
     .search-filter-bar {
         grid-template-columns: 1fr;
     }
-    
-    .socios-table-container {
+
+    .productos-table-container {
         overflow-x: scroll;
     }
-    
-    .table-socios {
+
+    .table-productos {
         min-width: 800px;
     }
+
+    .stock-control {
+        flex-wrap: wrap;
+    }
+    
+    .modal-content {
+        width: 95%;
+        max-height: 95vh;
+    }
+}
+
+/* Animaciones */
+@keyframes stockUpdate {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.2);
+        color: var(--success-color);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.stock-cantidad.updating {
+    animation: stockUpdate 0.3s ease-in-out;
 }

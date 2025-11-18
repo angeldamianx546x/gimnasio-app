@@ -26,6 +26,8 @@ class SociosManager {
     }
   }
 
+  // Reemplaza el método bindEvents() en socios.js con esta versión corregida:
+
   bindEvents() {
     // Navegación
     this.bindNavigation();
@@ -64,14 +66,29 @@ class SociosManager {
       });
     }
 
-    // Modal Socio
+    // Modal Socio - CORREGIDO
     const btnCerrarModalSocio = document.getElementById("btnCerrarModalSocio");
     const btnCancelarSocio = document.getElementById("btnCancelarSocio");
     const btnGuardarSocio = document.getElementById("btnGuardarSocio");
 
-    if (btnCerrarModalSocio) btnCerrarModalSocio.addEventListener("click", () => this.cerrarModalSocio());
-    if (btnCancelarSocio) btnCancelarSocio.addEventListener("click", () => this.cerrarModalSocio());
-    if (btnGuardarSocio) btnGuardarSocio.addEventListener("click", () => this.guardarSocio());
+    if (btnCerrarModalSocio) {
+      btnCerrarModalSocio.addEventListener("click", (e) => {
+        e.preventDefault();
+        this.cerrarModalSocio();
+      });
+    }
+    if (btnCancelarSocio) {
+      btnCancelarSocio.addEventListener("click", (e) => {
+        e.preventDefault();
+        this.cerrarModalSocio();
+      });
+    }
+    if (btnGuardarSocio) {
+      btnGuardarSocio.addEventListener("click", (e) => {
+        e.preventDefault();
+        this.guardarSocio();
+      });
+    }
 
     // Checkbox Estudiante
     const checkEstudiante = document.getElementById("checkEstudiante");
@@ -92,23 +109,53 @@ class SociosManager {
       });
     }
 
-    // Modal Detalle
+    // Modal Detalle - CORREGIDO
     const btnCerrarDetalle = document.getElementById("btnCerrarDetalle");
     const btnCerrarDetalleFooter = document.getElementById("btnCerrarDetalleFooter");
     const btnRegistrarPago = document.getElementById("btnRegistrarPago");
 
-    if (btnCerrarDetalle) btnCerrarDetalle.addEventListener("click", () => this.cerrarModalDetalle());
-    if (btnCerrarDetalleFooter) btnCerrarDetalleFooter.addEventListener("click", () => this.cerrarModalDetalle());
-    if (btnRegistrarPago) btnRegistrarPago.addEventListener("click", () => this.abrirModalPago());
+    if (btnCerrarDetalle) {
+      btnCerrarDetalle.addEventListener("click", (e) => {
+        e.preventDefault();
+        this.cerrarModalDetalle();
+      });
+    }
+    if (btnCerrarDetalleFooter) {
+      btnCerrarDetalleFooter.addEventListener("click", (e) => {
+        e.preventDefault();
+        this.cerrarModalDetalle();
+      });
+    }
+    if (btnRegistrarPago) {
+      btnRegistrarPago.addEventListener("click", (e) => {
+        e.preventDefault();
+        this.abrirModalPago();
+      });
+    }
 
-    // Modal Pago
+    // Modal Pago - CORREGIDO
     const btnCerrarModalPago = document.getElementById("btnCerrarModalPago");
     const btnCancelarPago = document.getElementById("btnCancelarPago");
     const btnConfirmarPago = document.getElementById("btnConfirmarPago");
 
-    if (btnCerrarModalPago) btnCerrarModalPago.addEventListener("click", () => this.cerrarModalPago());
-    if (btnCancelarPago) btnCancelarPago.addEventListener("click", () => this.cerrarModalPago());
-    if (btnConfirmarPago) btnConfirmarPago.addEventListener("click", () => this.confirmarPago());
+    if (btnCerrarModalPago) {
+      btnCerrarModalPago.addEventListener("click", (e) => {
+        e.preventDefault();
+        this.cerrarModalPago();
+      });
+    }
+    if (btnCancelarPago) {
+      btnCancelarPago.addEventListener("click", (e) => {
+        e.preventDefault();
+        this.cerrarModalPago();
+      });
+    }
+    if (btnConfirmarPago) {
+      btnConfirmarPago.addEventListener("click", (e) => {
+        e.preventDefault();
+        this.confirmarPago();
+      });
+    }
 
     // Tipo de membresía en pago
     const pagoTipoMembresia = document.getElementById("pagoTipoMembresia");
@@ -125,6 +172,15 @@ class SociosManager {
         this.calcularFechaVencimiento();
       });
     }
+
+    // Evento global para tecla ESC
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        this.cerrarModalSocio();
+        this.cerrarModalDetalle();
+        this.cerrarModalPago();
+      }
+    });
   }
 
   bindNavigation() {
@@ -161,7 +217,7 @@ class SociosManager {
   async loadSocios() {
     try {
       const result = await ipcRenderer.invoke("get-socios");
-      
+
       if (result.success) {
         this.socios = result.socios;
         this.renderTabla(this.socios);
@@ -177,10 +233,10 @@ class SociosManager {
   async loadEstadisticas() {
     try {
       const result = await ipcRenderer.invoke("get-estadisticas-socios");
-      
+
       if (result.success) {
         const stats = result.estadisticas;
-        
+
         document.getElementById("statActivos").textContent = stats.activos;
         document.getElementById("statVencidos").textContent = stats.vencidos;
         document.getElementById("statProximosVencer").textContent = stats.proximosVencer;
@@ -252,10 +308,10 @@ class SociosManager {
 
     const fechaVencimiento = socio.fecha_vencimiento
       ? new Date(socio.fecha_vencimiento).toLocaleDateString('es-ES', {
-          day: '2-digit',
-          month: '2-digit',
-          year: 'numeric'
-        })
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      })
       : 'Sin pago';
 
     const diasRestantesTexto = diasRestantes >= 0 ? `${diasRestantes} días` : 'Vencido';
@@ -334,13 +390,13 @@ class SociosManager {
 
   async verDetalleSocio(socio) {
     this.socioActual = socio;
-    
+
     // Llenar información básica
     document.getElementById("detNombre").textContent = socio.nombre;
     document.getElementById("detCelular").textContent = socio.celular || 'N/A';
     document.getElementById("detTurno").textContent = socio.tipo_turno;
     document.getElementById("detInstituto").textContent = socio.instituto || 'No es estudiante';
-    
+
     const fechaIngreso = new Date(socio.fecha_ingreso).toLocaleDateString('es-ES', {
       weekday: 'long',
       year: 'numeric',
@@ -353,7 +409,7 @@ class SociosManager {
     // Estado de membresía
     const diasRestantes = socio.dias_restantes || 0;
     let estadoBadge = "";
-    
+
     if (diasRestantes < 0 || !socio.fecha_vencimiento) {
       estadoBadge = '<span class="estado-badge vencido">Vencido</span>';
     } else if (diasRestantes === 0 || diasRestantes === 1) {
@@ -361,16 +417,16 @@ class SociosManager {
     } else {
       estadoBadge = '<span class="estado-badge activo">Activo</span>';
     }
-    
+
     document.getElementById("detEstado").innerHTML = estadoBadge;
-    
+
     const fechaVencimiento = socio.fecha_vencimiento
       ? new Date(socio.fecha_vencimiento).toLocaleDateString('es-ES', {
-          weekday: 'long',
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric'
-        })
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      })
       : 'Sin pago registrado';
     document.getElementById("detFechaVencimiento").textContent = fechaVencimiento;
     document.getElementById("detDiasRestantes").textContent = diasRestantes >= 0 ? `${diasRestantes} días` : 'Vencido';
@@ -384,13 +440,13 @@ class SociosManager {
 
   async cargarHistorialPagos(idSocio) {
     const container = document.getElementById("historialPagos");
-    
+
     try {
       const result = await ipcRenderer.invoke("get-historial-pagos", idSocio);
-      
+
       if (result.success && result.pagos.length > 0) {
         this.pagosActuales = result.pagos;
-        
+
         const html = `
           <table class="pagos-table">
             <thead>
@@ -403,11 +459,11 @@ class SociosManager {
             </thead>
             <tbody>
               ${result.pagos.map(pago => {
-                const fechaPago = new Date(pago.fecha_pago).toLocaleDateString('es-ES');
-                const fechaInicio = new Date(pago.fecha_inicio).toLocaleDateString('es-ES');
-                const fechaFin = new Date(pago.fecha_fin).toLocaleDateString('es-ES');
-                
-                return `
+          const fechaPago = new Date(pago.fecha_pago).toLocaleDateString('es-ES');
+          const fechaInicio = new Date(pago.fecha_inicio).toLocaleDateString('es-ES');
+          const fechaFin = new Date(pago.fecha_fin).toLocaleDateString('es-ES');
+
+          return `
                   <tr>
                     <td>${fechaPago}</td>
                     <td>${pago.tipo}</td>
@@ -415,11 +471,11 @@ class SociosManager {
                     <td>${fechaInicio} - ${fechaFin}</td>
                   </tr>
                 `;
-              }).join('')}
+        }).join('')}
             </tbody>
           </table>
         `;
-        
+
         container.innerHTML = html;
       } else {
         container.innerHTML = '<p style="text-align: center; color: var(--text-light); padding: var(--spacing-lg);">No hay pagos registrados</p>';
@@ -433,71 +489,102 @@ class SociosManager {
   abrirModalNuevo() {
     this.socioActual = null;
     this.modoEdicion = false;
-    
+
     const form = document.getElementById("formSocio");
-    if (form) form.reset();
-    
+    if (form) {
+      form.reset();
+
+      // Habilitar todos los inputs explícitamente
+      const inputs = form.querySelectorAll('input, select, textarea');
+      inputs.forEach(input => {
+        input.disabled = false;
+        input.readOnly = false;
+      });
+    }
+
     // Establecer fecha de ingreso como hoy
     const fechaIngreso = document.querySelector('[name="fecha_ingreso"]');
     if (fechaIngreso) {
       fechaIngreso.value = new Date().toISOString().split('T')[0];
     }
-    
+
     // Ocultar campo instituto
     const institutoField = document.getElementById("institutoField");
     if (institutoField) {
       institutoField.style.display = "none";
     }
-    
+
     // Mostrar campos de membresía para nuevo socio
     document.querySelectorAll('.membresia-field').forEach(field => {
       field.style.display = "block";
       const input = field.querySelector('input, select');
       if (input) input.setAttribute('required', 'required');
     });
-    
+
     document.getElementById("modalSocioTitle").textContent = "Nuevo Socio";
     document.getElementById("modalSocio").classList.add("active");
+
+    // Focus en el primer input
+    setTimeout(() => {
+      const primerInput = form.querySelector('[name="nombre"]');
+      if (primerInput) primerInput.focus();
+    }, 100);
   }
 
   editarSocio(socio) {
-    this.socioActual = socio;
-    this.modoEdicion = true;
+  this.socioActual = socio;
+  this.modoEdicion = true;
+  
+  const form = document.getElementById("formSocio");
+  if (form) {
+    // Habilitar todos los inputs explícitamente
+    const inputs = form.querySelectorAll('input, select, textarea');
+    inputs.forEach(input => {
+      input.disabled = false;
+      input.readOnly = false;
+    });
     
-    const form = document.getElementById("formSocio");
-    if (form) {
-      // Llenar el formulario con los datos del socio
-      form.querySelector('[name="nombre"]').value = socio.nombre;
-      form.querySelector('[name="celular"]').value = socio.celular || '';
-      form.querySelector('[name="tipo_turno"]').value = socio.tipo_turno;
-      form.querySelector('[name="fecha_ingreso"]').value = socio.fecha_ingreso.split('T')[0];
-      
-      // Manejo de estudiante e instituto
-      const checkEstudiante = form.querySelector('[name="es_estudiante"]');
-      const institutoField = document.getElementById("institutoField");
-      const institutoInput = form.querySelector('[name="instituto"]');
-      
-      if (socio.instituto) {
-        checkEstudiante.checked = true;
-        institutoField.style.display = "block";
-        institutoInput.value = socio.instituto;
-      } else {
-        checkEstudiante.checked = false;
-        institutoField.style.display = "none";
-        institutoInput.value = '';
-      }
-      
-      // Ocultar campos de membresía cuando se edita (se hace pago por separado)
-      document.querySelectorAll('.membresia-field').forEach(field => {
-        field.style.display = "none";
-        const input = field.querySelector('input, select');
-        if (input) input.removeAttribute('required');
-      });
+    // Llenar el formulario con los datos del socio
+    form.querySelector('[name="nombre"]').value = socio.nombre;
+    form.querySelector('[name="celular"]').value = socio.celular || '';
+    form.querySelector('[name="tipo_turno"]').value = socio.tipo_turno;
+    form.querySelector('[name="fecha_ingreso"]').value = socio.fecha_ingreso.split('T')[0];
+    
+    // Manejo de estudiante e instituto
+    const checkEstudiante = form.querySelector('[name="es_estudiante"]');
+    const institutoField = document.getElementById("institutoField");
+    const institutoInput = form.querySelector('[name="instituto"]');
+    
+    if (socio.instituto) {
+      checkEstudiante.checked = true;
+      institutoField.style.display = "block";
+      institutoInput.value = socio.instituto;
+    } else {
+      checkEstudiante.checked = false;
+      institutoField.style.display = "none";
+      institutoInput.value = '';
     }
     
-    document.getElementById("modalSocioTitle").textContent = "Editar Socio";
-    document.getElementById("modalSocio").classList.add("active");
+    // Ocultar campos de membresía cuando se edita
+    document.querySelectorAll('.membresia-field').forEach(field => {
+      field.style.display = "none";
+      const input = field.querySelector('input, select');
+      if (input) input.removeAttribute('required');
+    });
   }
+  
+  document.getElementById("modalSocioTitle").textContent = "Editar Socio";
+  document.getElementById("modalSocio").classList.add("active");
+  
+  // Focus en el primer input
+  setTimeout(() => {
+    const primerInput = form.querySelector('[name="nombre"]');
+    if (primerInput) {
+      primerInput.focus();
+      primerInput.select();
+    }
+  }, 100);
+}
 
   cerrarModalSocio() {
     document.getElementById("modalSocio").classList.remove("active");
@@ -508,39 +595,54 @@ class SociosManager {
     this.socioActual = null;
   }
 
-  abrirModalPago() {
-    if (!this.socioActual) {
-      this.mostrarError("No se ha seleccionado ningún socio");
-      return;
-    }
-    
-    // Cerrar modal de detalle si está abierto
-    this.cerrarModalDetalle();
-    
-    const form = document.getElementById("formPago");
-    if (form) form.reset();
-    
-    document.getElementById("pagoIdSocio").value = this.socioActual.id_socio;
-    document.getElementById("pagoSocioNombre").textContent = this.socioActual.nombre;
-    
-    const diasRestantes = this.socioActual.dias_restantes || 0;
-    let estadoTexto = "";
-    
-    if (diasRestantes < 0 || !this.socioActual.fecha_vencimiento) {
-      estadoTexto = "❌ Membresía Vencida";
-    } else if (diasRestantes === 0 || diasRestantes === 1) {
-      estadoTexto = "⚠️ Próximo a Vencer";
-    } else {
-      estadoTexto = `✅ Activo (${diasRestantes} días restantes)`;
-    }
-    
-    document.getElementById("pagoEstadoActual").textContent = estadoTexto;
-    
-    // Calcular fechas
-    this.calcularFechaVencimiento();
-    
-    document.getElementById("modalPago").classList.add("active");
+ abrirModalPago() {
+  if (!this.socioActual) {
+    this.mostrarError("No se ha seleccionado ningún socio");
+    return;
   }
+  
+  // Cerrar modal de detalle si está abierto
+  this.cerrarModalDetalle();
+  
+  const form = document.getElementById("formPago");
+  if (form) {
+    form.reset();
+    
+    // Habilitar todos los inputs explícitamente
+    const inputs = form.querySelectorAll('input, select, textarea');
+    inputs.forEach(input => {
+      input.disabled = false;
+      input.readOnly = false;
+    });
+  }
+  
+  document.getElementById("pagoIdSocio").value = this.socioActual.id_socio;
+  document.getElementById("pagoSocioNombre").textContent = this.socioActual.nombre;
+  
+  const diasRestantes = this.socioActual.dias_restantes || 0;
+  let estadoTexto = "";
+  
+  if (diasRestantes < 0 || !this.socioActual.fecha_vencimiento) {
+    estadoTexto = "❌ Membresía Vencida";
+  } else if (diasRestantes === 0 || diasRestantes === 1) {
+    estadoTexto = "⚠️ Próximo a Vencer";
+  } else {
+    estadoTexto = `✅ Activo (${diasRestantes} días restantes)`;
+  }
+  
+  document.getElementById("pagoEstadoActual").textContent = estadoTexto;
+  
+  // Calcular fechas
+  this.calcularFechaVencimiento();
+  
+  document.getElementById("modalPago").classList.add("active");
+  
+  // Focus en el select de tipo membresía
+  setTimeout(() => {
+    const selectMembresia = document.getElementById("pagoTipoMembresia");
+    if (selectMembresia) selectMembresia.focus();
+  }, 100);
+}
 
   cerrarModalPago() {
     document.getElementById("modalPago").classList.remove("active");
@@ -552,7 +654,7 @@ class SociosManager {
       semanal: 150,
       mensual: 300
     };
-    
+
     const monto = precios[tipo] || 300;
     document.getElementById(elementId).value = monto;
   }
@@ -560,39 +662,39 @@ class SociosManager {
   calcularFechaVencimiento() {
     const tipoMembresia = document.getElementById("pagoTipoMembresia").value;
     const fechaInicioInput = document.getElementById("pagoFechaInicio").value;
-    
+
     const dias = {
       diaria: 1,
       semanal: 7,
       mensual: 30
     };
-    
+
     const precios = {
       diaria: 30,
       semanal: 150,
       mensual: 300
     };
-    
+
     const fechaInicio = fechaInicioInput ? new Date(fechaInicioInput) : new Date();
     const diasSumar = dias[tipoMembresia] || 30;
-    
+
     const fechaFin = new Date(fechaInicio);
     fechaFin.setDate(fechaFin.getDate() + diasSumar);
-    
+
     document.getElementById("pagoFechaFin").textContent = fechaFin.toLocaleDateString('es-ES', {
       weekday: 'long',
       year: 'numeric',
       month: 'long',
       day: 'numeric'
     });
-    
+
     document.getElementById("pagoMontoCalculado").textContent = (precios[tipoMembresia] || 300).toFixed(2);
   }
 
   async guardarSocio() {
     const form = document.getElementById("formSocio");
     const formData = new FormData(form);
-    
+
     if (!formData.get("nombre") || !formData.get("celular") || !formData.get("fecha_ingreso")) {
       this.mostrarError("Por favor completa todos los campos obligatorios");
       return;
@@ -609,7 +711,7 @@ class SociosManager {
 
     try {
       let result;
-      
+
       if (this.modoEdicion && this.socioActual) {
         // Actualizar socio existente
         socioData.id_socio = this.socioActual.id_socio;
@@ -624,7 +726,7 @@ class SociosManager {
         socioData.monto_pago = parseFloat(formData.get("monto_pago"));
         result = await ipcRenderer.invoke("registrar-socio", socioData);
       }
-      
+
       if (result.success) {
         this.mostrarExito(this.modoEdicion ? "Socio actualizado correctamente" : "Socio registrado correctamente");
         this.cerrarModalSocio();
@@ -642,24 +744,24 @@ class SociosManager {
   async confirmarPago() {
     const form = document.getElementById("formPago");
     const formData = new FormData(form);
-    
+
     const idSocio = parseInt(formData.get("id_socio"));
     const tipoMembresia = formData.get("tipo_membresia");
     const fechaInicioInput = formData.get("fecha_inicio");
     const metodoPago = formData.get("metodo_pago");
     const observaciones = formData.get("observaciones");
-    
+
     if (!tipoMembresia || !metodoPago) {
       this.mostrarError("Por favor completa los campos requeridos");
       return;
     }
-    
+
     const precios = {
       diaria: 30,
       semanal: 150,
       mensual: 300
     };
-    
+
     const pagoData = {
       id_socio: idSocio,
       tipo_membresia: tipoMembresia,
@@ -668,10 +770,10 @@ class SociosManager {
       metodo_pago: metodoPago,
       observaciones: observaciones
     };
-    
+
     try {
       const result = await ipcRenderer.invoke("registrar-pago", pagoData);
-      
+
       if (result.success) {
         this.mostrarExito("Pago registrado correctamente");
         this.cerrarModalPago();
@@ -696,7 +798,7 @@ class SociosManager {
 
     try {
       const result = await ipcRenderer.invoke("eliminar-socio", idSocio);
-      
+
       if (result.success) {
         this.mostrarExito("Socio eliminado correctamente");
         await this.loadSocios();
@@ -718,7 +820,7 @@ class SociosManager {
 
     try {
       const result = await ipcRenderer.invoke("buscar-socios", query);
-      
+
       if (result.success) {
         this.renderTabla(result.socios);
       }
@@ -734,8 +836,8 @@ class SociosManager {
     }
 
     let sociosFiltrados = [];
-    
-    switch(estado) {
+
+    switch (estado) {
       case 'activo':
         sociosFiltrados = this.socios.filter(s => s.dias_restantes > 1);
         break;
@@ -746,13 +848,13 @@ class SociosManager {
         sociosFiltrados = this.socios.filter(s => s.dias_restantes >= 0 && s.dias_restantes <= 1);
         break;
     }
-    
+
     this.renderTabla(sociosFiltrados);
   }
 
   getMesNombre(mes) {
-    const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
-                   'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+    const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+      'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
     return meses[mes];
   }
 
@@ -770,7 +872,7 @@ class SociosManager {
       message: "¿Estás seguro de que quieres cerrar sesión?",
     });
 
-    if (confirmed){
+    if (confirmed) {
       try {
         await ipcRenderer.invoke("logout");
       } catch (error) {
@@ -794,4 +896,3 @@ document.addEventListener("DOMContentLoaded", () => {
   new SociosManager();
 });
 
-      

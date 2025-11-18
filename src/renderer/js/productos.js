@@ -14,9 +14,6 @@ class ProductosManager {
     this.bindEvents();
     this.updateUserInterface();
     await this.loadProductos();
-
-    // Cerrar todos los modales al iniciar (por seguridad)
-    this.cerrarTodosLosModales();
   }
 
   async loadUserData() {
@@ -58,69 +55,60 @@ class ProductosManager {
     }
 
     // Modal Producto - Eventos
-    const modalProducto = document.getElementById("modalProducto");
     const btnCerrarModal = document.getElementById("btnCerrarModal");
     const btnCancelar = document.getElementById("btnCancelar");
     const btnGuardar = document.getElementById("btnGuardar");
 
-    if (modalProducto) {
-      modalProducto.addEventListener("click", (e) => {
-        if (e.target === modalProducto) {
-          this.cerrarModal();
-        }
+    if (btnCerrarModal) {
+      btnCerrarModal.addEventListener("click", (e) => {
+        e.preventDefault();
+        this.cerrarModal();
+      });
+    }
+    if (btnCancelar) {
+      btnCancelar.addEventListener("click", (e) => {
+        e.preventDefault();
+        this.cerrarModal();
+      });
+    }
+    if (btnGuardar) {
+      btnGuardar.addEventListener("click", (e) => {
+        e.preventDefault();
+        this.guardarProducto();
       });
     }
 
-    if (btnCerrarModal) btnCerrarModal.addEventListener("click", () => this.cerrarModal());
-    if (btnCancelar) btnCancelar.addEventListener("click", () => this.cerrarModal());
-    if (btnGuardar) btnGuardar.addEventListener("click", () => this.guardarProducto());
-
     // Modal Stock - Eventos
-    const modalStock = document.getElementById("modalStock");
     const btnCerrarModalStock = document.getElementById("btnCerrarModalStock");
     const btnCancelarStock = document.getElementById("btnCancelarStock");
     const btnGuardarStock = document.getElementById("btnGuardarStock");
 
-    if (modalStock) {
-      modalStock.addEventListener("click", (e) => {
-        if (e.target === modalStock) {
-          this.cerrarModalStock();
-        }
+    if (btnCerrarModalStock) {
+      btnCerrarModalStock.addEventListener("click", (e) => {
+        e.preventDefault();
+        this.cerrarModalStock();
       });
     }
-
-    if (btnCerrarModalStock) btnCerrarModalStock.addEventListener("click", () => this.cerrarModalStock());
-    if (btnCancelarStock) btnCancelarStock.addEventListener("click", () => this.cerrarModalStock());
-    if (btnGuardarStock) btnGuardarStock.addEventListener("click", () => this.guardarStock());
+    if (btnCancelarStock) {
+      btnCancelarStock.addEventListener("click", (e) => {
+        e.preventDefault();
+        this.cerrarModalStock();
+      });
+    }
+    if (btnGuardarStock) {
+      btnGuardarStock.addEventListener("click", (e) => {
+        e.preventDefault();
+        this.guardarStock();
+      });
+    }
 
     // Evento global para tecla ESC
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape") {
-        this.cerrarTodosLosModales();
+        this.cerrarModal();
+        this.cerrarModalStock();
       }
     });
-
-    // Validar campos numéricos
-    const precioInput = document.querySelector('[name="precio"]');
-    const stockInput = document.querySelector('[name="stock"]');
-
-    if (precioInput) {
-      precioInput.addEventListener("input", (e) => {
-        if (e.target.value < 0) e.target.value = 0;
-      });
-    }
-
-    if (stockInput) {
-      stockInput.addEventListener("input", (e) => {
-        if (e.target.value < 0) e.target.value = 0;
-      });
-    }
-  }
-
-  // Nuevo método para cerrar todos los modales
-  cerrarTodosLosModales() {
-    this.cerrarModal();
-    this.cerrarModalStock();
   }
 
   bindNavigation() {
@@ -143,7 +131,6 @@ class ProductosManager {
 
   async loadProductos() {
     try {
-      // Mostrar estado de carga
       this.mostrarEstadoCarga();
 
       const result = await ipcRenderer.invoke("get-productos");
@@ -201,7 +188,6 @@ class ProductosManager {
     const html = productos.map((producto) => this.createTableRow(producto)).join("");
     tbody.innerHTML = html;
 
-    // Eventos de botones
     this.bindActionButtons();
   }
 
@@ -222,10 +208,10 @@ class ProductosManager {
         <td class="precio-cell">$${parseFloat(producto.precio).toFixed(2)}</td>
         <td>
           <div class="stock-control">
-            <button class="stock-btn" onclick="productosManager.ajustarStock(${producto.id_producto}, -1)" 
+            <button class="stock-btn" data-action="decrease" data-id="${producto.id_producto}" 
                     ${producto.stock === 0 ? 'disabled' : ''}>-</button>
             <span class="stock-cantidad">${producto.stock}</span>
-            <button class="stock-btn" onclick="productosManager.ajustarStock(${producto.id_producto}, 1)">+</button>
+            <button class="stock-btn" data-action="increase" data-id="${producto.id_producto}">+</button>
           </div>
         </td>
         <td>${stockBadge}</td>
@@ -253,9 +239,21 @@ class ProductosManager {
   }
 
   bindActionButtons() {
+    // Botones de stock rápido
+    document.querySelectorAll(".stock-btn").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        const idProducto = parseInt(btn.dataset.id);
+        const action = btn.dataset.action;
+        const cambio = action === "increase" ? 1 : -1;
+        this.ajustarStock(idProducto, cambio);
+      });
+    });
+
     // Botones de editar
     document.querySelectorAll(".btn-editar").forEach((btn) => {
-      btn.addEventListener("click", () => {
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
         const idProducto = parseInt(btn.dataset.id);
         const producto = this.productos.find((p) => p.id_producto === idProducto);
         if (producto) {
@@ -266,7 +264,8 @@ class ProductosManager {
 
     // Botones de stock
     document.querySelectorAll(".btn-stock").forEach((btn) => {
-      btn.addEventListener("click", () => {
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
         const idProducto = parseInt(btn.dataset.id);
         const producto = this.productos.find((p) => p.id_producto === idProducto);
         if (producto) {
@@ -277,7 +276,8 @@ class ProductosManager {
 
     // Botones de eliminar
     document.querySelectorAll(".btn-eliminar").forEach((btn) => {
-      btn.addEventListener("click", async () => {
+      btn.addEventListener("click", async (e) => {
+        e.preventDefault();
         const idProducto = parseInt(btn.dataset.id);
         await this.eliminarProducto(idProducto);
       });
@@ -285,55 +285,95 @@ class ProductosManager {
   }
 
   abrirModalNuevo() {
-    // Cerrar cualquier modal abierto primero
-    this.cerrarTodosLosModales();
-
     this.productoActual = null;
     this.modoEdicion = false;
 
     const form = document.getElementById("formProducto");
-    if (form) form.reset();
+    if (form) {
+      form.reset();
+      
+      // Habilitar todos los inputs explícitamente
+      const inputs = form.querySelectorAll('input, select, textarea');
+      inputs.forEach(input => {
+        input.disabled = false;
+        input.readOnly = false;
+      });
+    }
 
     document.getElementById("modalProductoTitle").textContent = "Nuevo Producto";
-    document.getElementById("modalProducto").classList.add("active");
+    
+    const modal = document.getElementById("modalProducto");
+    modal.classList.add("active");
+    
+    // Focus en el primer input después de un pequeño delay
+    setTimeout(() => {
+      const primerInput = form.querySelector('input[name="nombre"]');
+      if (primerInput) primerInput.focus();
+    }, 100);
   }
 
   editarProducto(producto) {
-    // Cerrar cualquier modal abierto primero
-    this.cerrarTodosLosModales();
-
     this.productoActual = producto;
     this.modoEdicion = true;
 
     const form = document.getElementById("formProducto");
     if (form) {
+      // Habilitar todos los inputs explícitamente
+      const inputs = form.querySelectorAll('input, select, textarea');
+      inputs.forEach(input => {
+        input.disabled = false;
+        input.readOnly = false;
+      });
+
+      // Llenar valores
       form.querySelector('[name="nombre"]').value = producto.nombre;
       form.querySelector('[name="precio"]').value = producto.precio;
       form.querySelector('[name="stock"]').value = producto.stock;
     }
 
     document.getElementById("modalProductoTitle").textContent = "Editar Producto";
-    document.getElementById("modalProducto").classList.add("active");
+    
+    const modal = document.getElementById("modalProducto");
+    modal.classList.add("active");
+    
+    // Focus en el primer input
+    setTimeout(() => {
+      const primerInput = form.querySelector('input[name="nombre"]');
+      if (primerInput) {
+        primerInput.focus();
+        primerInput.select();
+      }
+    }, 100);
   }
 
   abrirModalStock(producto) {
-    // Cerrar cualquier modal abierto primero
-    this.cerrarTodosLosModales();
-
     this.productoActual = producto;
 
     document.getElementById("stockProductoNombre").textContent = producto.nombre;
     document.getElementById("stockActual").textContent = producto.stock;
-    document.getElementById("stockNuevoInput").value = producto.stock;
+    
+    const stockInput = document.getElementById("stockNuevoInput");
+    stockInput.value = producto.stock;
+    stockInput.disabled = false;
+    stockInput.readOnly = false;
 
-    // Actualizar diferencia inicial
     this.actualizarDiferenciaStock();
 
-    document.getElementById("modalStock").classList.add("active");
+    const modal = document.getElementById("modalStock");
+    modal.classList.add("active");
 
-    // Event listener para el input de stock
-    const stockInput = document.getElementById("stockNuevoInput");
-    stockInput.addEventListener("input", () => this.actualizarDiferenciaStock());
+    // Remover event listener anterior si existe
+    const newStockInput = stockInput.cloneNode(true);
+    stockInput.parentNode.replaceChild(newStockInput, stockInput);
+    
+    // Agregar nuevo event listener
+    newStockInput.addEventListener("input", () => this.actualizarDiferenciaStock());
+    
+    // Focus en el input
+    setTimeout(() => {
+      newStockInput.focus();
+      newStockInput.select();
+    }, 100);
   }
 
   actualizarDiferenciaStock() {
@@ -360,11 +400,22 @@ class ProductosManager {
   }
 
   cerrarModal() {
-    document.getElementById("modalProducto").classList.remove("active");
+    const modal = document.getElementById("modalProducto");
+    modal.classList.remove("active");
+    
+    // Limpiar el formulario
+    const form = document.getElementById("formProducto");
+    if (form) form.reset();
+    
+    this.productoActual = null;
+    this.modoEdicion = false;
   }
 
   cerrarModalStock() {
-    document.getElementById("modalStock").classList.remove("active");
+    const modal = document.getElementById("modalStock");
+    modal.classList.remove("active");
+    
+    this.productoActual = null;
   }
 
   async guardarProducto() {
@@ -545,10 +596,8 @@ class ProductosManager {
   }
 }
 
-// Variable global
 let productosManager;
 
-// Inicializar cuando el DOM esté listo
 document.addEventListener("DOMContentLoaded", () => {
   productosManager = new ProductosManager();
 });

@@ -423,3 +423,72 @@
     }
 }
 
+
+.modal {
+    pointer-events: auto !important;
+}
+
+.modal-content {
+    pointer-events: auto !important;
+    position: relative;
+    z-index: 1001;
+}
+
+/* Asegurar que todos los inputs del modal sean completamente interactivos */
+.modal-content input,
+.modal-content select,
+.modal-content textarea,
+.modal-content button,
+.modal-content label {
+    pointer-events: auto !important;
+    user-select: auto !important;
+}
+
+/* Asegurar que los inputs no estén deshabilitados por CSS */
+.modal-content input:not([disabled]),
+.modal-content select:not([disabled]),
+.modal-content textarea:not([disabled]) {
+    opacity: 1 !important;
+    cursor: text !important;
+    background-color: var(--bg-primary) !important;
+}
+
+/* Asegurar que los checkboxes funcionen */
+.modal-content input[type="checkbox"] {
+    cursor: pointer !important;
+}
+
+/* Asegurar que el overlay del modal no bloquee el contenido */
+.modal::before {
+    pointer-events: none !important;
+}
+
+/* Focus visible en inputs dentro de modales */
+.modal-content input:focus,
+.modal-content select:focus,
+.modal-content textarea:focus {
+    outline: none !important;
+    border-color: var(--primary-color) !important;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1) !important;
+}
+
+/* Asegurar que los botones dentro de modales sean clickeables */
+.modal-content .btn,
+.modal-content button {
+    pointer-events: auto !important;
+    cursor: pointer !important;
+}
+
+/* Corregir z-index de todos los modales */
+#modalSocio,
+#modalDetalleSocio,
+#modalPago {
+    z-index: 1000 !important;
+}
+
+#modalSocio .modal-content,
+#modalDetalleSocio .modal-content,
+#modalPago .modal-content {
+    z-index: 1001 !important;
+}
+
