@@ -14,7 +14,7 @@ class ProductosManager {
     this.bindEvents();
     this.updateUserInterface();
     await this.loadProductos();
-    
+
     // Cerrar todos los modales al iniciar (por seguridad)
     this.cerrarTodosLosModales();
   }
@@ -145,7 +145,7 @@ class ProductosManager {
     try {
       // Mostrar estado de carga
       this.mostrarEstadoCarga();
-      
+
       const result = await ipcRenderer.invoke("get-productos");
 
       if (result.success) {
@@ -206,14 +206,14 @@ class ProductosManager {
   }
 
   createTableRow(producto) {
-    const stockClass = producto.stock <= 5 ? 'stock-bajo' : 
-                      producto.stock <= 10 ? 'stock-medio' : 'stock-alto';
-    
-    const stockBadge = producto.stock === 0 ? 
+    const stockClass = producto.stock <= 5 ? 'stock-bajo' :
+      producto.stock <= 10 ? 'stock-medio' : 'stock-alto';
+
+    const stockBadge = producto.stock === 0 ?
       '<span class="estado-badge vencido">Sin Stock</span>' :
       producto.stock <= 5 ?
-      '<span class="estado-badge proximo-vencer">Stock Bajo</span>' :
-      '<span class="estado-badge activo">Disponible</span>';
+        '<span class="estado-badge proximo-vencer">Stock Bajo</span>' :
+        '<span class="estado-badge activo">Disponible</span>';
 
     return `
       <tr class="${stockClass}" data-id="${producto.id_producto}">
@@ -287,7 +287,7 @@ class ProductosManager {
   abrirModalNuevo() {
     // Cerrar cualquier modal abierto primero
     this.cerrarTodosLosModales();
-    
+
     this.productoActual = null;
     this.modoEdicion = false;
 
@@ -301,7 +301,7 @@ class ProductosManager {
   editarProducto(producto) {
     // Cerrar cualquier modal abierto primero
     this.cerrarTodosLosModales();
-    
+
     this.productoActual = producto;
     this.modoEdicion = true;
 
@@ -319,16 +319,16 @@ class ProductosManager {
   abrirModalStock(producto) {
     // Cerrar cualquier modal abierto primero
     this.cerrarTodosLosModales();
-    
+
     this.productoActual = producto;
 
     document.getElementById("stockProductoNombre").textContent = producto.nombre;
     document.getElementById("stockActual").textContent = producto.stock;
     document.getElementById("stockNuevoInput").value = producto.stock;
-    
+
     // Actualizar diferencia inicial
     this.actualizarDiferenciaStock();
-    
+
     document.getElementById("modalStock").classList.add("active");
 
     // Event listener para el input de stock
@@ -338,15 +338,15 @@ class ProductosManager {
 
   actualizarDiferenciaStock() {
     if (!this.productoActual) return;
-    
+
     const stockInput = document.getElementById("stockNuevoInput");
     const diferenciaElement = document.getElementById("stockDiferencia");
-    
+
     if (!stockInput || !diferenciaElement) return;
 
     const nuevoStock = parseInt(stockInput.value) || 0;
     const diferencia = nuevoStock - this.productoActual.stock;
-    
+
     if (diferencia > 0) {
       diferenciaElement.textContent = `+${diferencia}`;
       diferenciaElement.style.color = 'var(--success-color)';
