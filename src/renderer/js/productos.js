@@ -14,6 +14,9 @@ class ProductosManager {
     this.bindEvents();
     this.updateUserInterface();
     await this.loadProductos();
+    
+    // Cerrar todos los modales al iniciar (por seguridad)
+    this.cerrarTodosLosModales();
   }
 
   async loadUserData() {
@@ -54,14 +57,48 @@ class ProductosManager {
       btnRecargar.addEventListener("click", () => this.loadProductos());
     }
 
-    // Modal Producto
+    // Modal Producto - Eventos
+    const modalProducto = document.getElementById("modalProducto");
     const btnCerrarModal = document.getElementById("btnCerrarModal");
     const btnCancelar = document.getElementById("btnCancelar");
     const btnGuardar = document.getElementById("btnGuardar");
 
+    if (modalProducto) {
+      modalProducto.addEventListener("click", (e) => {
+        if (e.target === modalProducto) {
+          this.cerrarModal();
+        }
+      });
+    }
+
     if (btnCerrarModal) btnCerrarModal.addEventListener("click", () => this.cerrarModal());
     if (btnCancelar) btnCancelar.addEventListener("click", () => this.cerrarModal());
     if (btnGuardar) btnGuardar.addEventListener("click", () => this.guardarProducto());
+
+    // Modal Stock - Eventos
+    const modalStock = document.getElementById("modalStock");
+    const btnCerrarModalStock = document.getElementById("btnCerrarModalStock");
+    const btnCancelarStock = document.getElementById("btnCancelarStock");
+    const btnGuardarStock = document.getElementById("btnGuardarStock");
+
+    if (modalStock) {
+      modalStock.addEventListener("click", (e) => {
+        if (e.target === modalStock) {
+          this.cerrarModalStock();
+        }
+      });
+    }
+
+    if (btnCerrarModalStock) btnCerrarModalStock.addEventListener("click", () => this.cerrarModalStock());
+    if (btnCancelarStock) btnCancelarStock.addEventListener("click", () => this.cerrarModalStock());
+    if (btnGuardarStock) btnGuardarStock.addEventListener("click", () => this.guardarStock());
+
+    // Evento global para tecla ESC
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        this.cerrarTodosLosModales();
+      }
+    });
 
     // Validar campos numéricos
     const precioInput = document.querySelector('[name="precio"]');
@@ -78,6 +115,12 @@ class ProductosManager {
         if (e.target.value < 0) e.target.value = 0;
       });
     }
+  }
+
+  // Nuevo método para cerrar todos los modales
+  cerrarTodosLosModales() {
+    this.cerrarModal();
+    this.cerrarModalStock();
   }
 
   bindNavigation() {
@@ -100,6 +143,9 @@ class ProductosManager {
 
   async loadProductos() {
     try {
+      // Mostrar estado de carga
+      this.mostrarEstadoCarga();
+      
       const result = await ipcRenderer.invoke("get-productos");
 
       if (result.success) {
@@ -112,6 +158,22 @@ class ProductosManager {
     } catch (error) {
       console.error("Error cargando productos:", error);
       this.mostrarError("Error al cargar productos");
+    }
+  }
+
+  mostrarEstadoCarga() {
+    const tbody = document.getElementById("productosTableBody");
+    if (tbody) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="6" style="text-align: center; padding: var(--spacing-xl);">
+            <div class="empty-state">
+              <div class="empty-state-icon">⏳</div>
+              <p>Cargando productos...</p>
+            </div>
+          </td>
+        </tr>
+      `;
     }
   }
 
@@ -223,6 +285,9 @@ class ProductosManager {
   }
 
   abrirModalNuevo() {
+    // Cerrar cualquier modal abierto primero
+    this.cerrarTodosLosModales();
+    
     this.productoActual = null;
     this.modoEdicion = false;
 
@@ -234,6 +299,9 @@ class ProductosManager {
   }
 
   editarProducto(producto) {
+    // Cerrar cualquier modal abierto primero
+    this.cerrarTodosLosModales();
+    
     this.productoActual = producto;
     this.modoEdicion = true;
 
@@ -249,49 +317,46 @@ class ProductosManager {
   }
 
   abrirModalStock(producto) {
+    // Cerrar cualquier modal abierto primero
+    this.cerrarTodosLosModales();
+    
     this.productoActual = producto;
 
     document.getElementById("stockProductoNombre").textContent = producto.nombre;
     document.getElementById("stockActual").textContent = producto.stock;
     document.getElementById("stockNuevoInput").value = producto.stock;
     
+    // Actualizar diferencia inicial
+    this.actualizarDiferenciaStock();
+    
     document.getElementById("modalStock").classList.add("active");
 
-    // Eventos del modal de stock
-    const btnCerrarStock = document.getElementById("btnCerrarModalStock");
-    const btnCancelarStock = document.getElementById("btnCancelarStock");
-    const btnGuardarStock = document.getElementById("btnGuardarStock");
+    // Event listener para el input de stock
     const stockInput = document.getElementById("stockNuevoInput");
+    stockInput.addEventListener("input", () => this.actualizarDiferenciaStock());
+  }
 
-    // Limpiar eventos previos
-    const nuevoBotonCerrar = btnCerrarStock.cloneNode(true);
-    const nuevoBotonCancelar = btnCancelarStock.cloneNode(true);
-    const nuevoBotonGuardar = btnGuardarStock.cloneNode(true);
+  actualizarDiferenciaStock() {
+    if (!this.productoActual) return;
     
-    btnCerrarStock.parentNode.replaceChild(nuevoBotonCerrar, btnCerrarStock);
-    btnCancelarStock.parentNode.replaceChild(nuevoBotonCancelar, btnCancelarStock);
-    btnGuardarStock.parentNode.replaceChild(nuevoBotonGuardar, btnGuardarStock);
+    const stockInput = document.getElementById("stockNuevoInput");
+    const diferenciaElement = document.getElementById("stockDiferencia");
+    
+    if (!stockInput || !diferenciaElement) return;
 
-    nuevoBotonCerrar.addEventListener("click", () => this.cerrarModalStock());
-    nuevoBotonCancelar.addEventListener("click", () => this.cerrarModalStock());
-    nuevoBotonGuardar.addEventListener("click", () => this.guardarStock());
-
-    // Actualizar diferencia al cambiar el input
-    stockInput.addEventListener("input", () => {
-      const diferencia = parseInt(stockInput.value) - producto.stock;
-      const diferenciaElement = document.getElementById("stockDiferencia");
-      
-      if (diferencia > 0) {
-        diferenciaElement.textContent = `+${diferencia}`;
-        diferenciaElement.style.color = 'var(--success-color)';
-      } else if (diferencia < 0) {
-        diferenciaElement.textContent = diferencia;
-        diferenciaElement.style.color = 'var(--error-color)';
-      } else {
-        diferenciaElement.textContent = '0';
-        diferenciaElement.style.color = 'var(--text-secondary)';
-      }
-    });
+    const nuevoStock = parseInt(stockInput.value) || 0;
+    const diferencia = nuevoStock - this.productoActual.stock;
+    
+    if (diferencia > 0) {
+      diferenciaElement.textContent = `+${diferencia}`;
+      diferenciaElement.style.color = 'var(--success-color)';
+    } else if (diferencia < 0) {
+      diferenciaElement.textContent = diferencia;
+      diferenciaElement.style.color = 'var(--error-color)';
+    } else {
+      diferenciaElement.textContent = '0';
+      diferenciaElement.style.color = 'var(--text-secondary)';
+    }
   }
 
   cerrarModal() {

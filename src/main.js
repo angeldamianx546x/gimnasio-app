@@ -248,17 +248,17 @@ ipcMain.handle("add-producto", async (event, productData) => {
   }
 });
 
-// ipcMain.handle("update-stock", async (event, productId, newStock) => {
-//   try {
-//     if (!currentUser) {
-//       return { success: false, message: "No hay usuario autenticado" };
-//     }
-//     return await ProductosService.updateStock(productId, newStock, currentUser.id);
-//   } catch (error) {
-//     console.error("Error al actualizar stock:", error);
-//     return { success: false, message: "Error al actualizar stock" };
-//   }
-// });
+ ipcMain.handle("update-stock", async (event, productId, newStock) => {
+ try {
+   if (!currentUser) {
+     return { success: false, message: "No hay usuario autenticado" };
+  }
+   return await ProductosService.updateStock(productId, newStock, currentUser.id);
+ } catch (error) {
+   console.error("Error al actualizar stock:", error);
+  return { success: false, message: "Error al actualizar stock" };
+  }
+});
 
 // Agregar estos handlers en la sección de HANDLERS IPC - Productos
 
