@@ -12,7 +12,7 @@ class VentasManager {
     await this.loadUserData();
     this.bindEvents();
     this.updateUserInterface();
-    this.loadProductos();
+    await this.loadProductos();
   }
 
   async loadUserData() {
@@ -50,9 +50,7 @@ class VentasManager {
     }
 
     if (procesarBtn) {
-      procesarBtn.addEventListener("click", () =>
-        this.abrirModalConfirmacion()
-      );
+      procesarBtn.addEventListener("click", () => this.procesarVenta());
     }
   }
 
@@ -95,16 +93,24 @@ class VentasManager {
   }
 
   async loadProductos() {
-    // Productos simulados por ahora
-    this.productos = [
-      { id: 1, nombre: "Proteína Whey", precio: 450, stock: 25 },
-      { id: 2, nombre: "Creatina", precio: 280, stock: 15 },
-      { id: 3, nombre: "BCAA", precio: 320, stock: 30 },
-      { id: 4, nombre: "Pre-workout", precio: 380, stock: 8 },
-      { id: 5, nombre: "Glutamina", precio: 220, stock: 20 },
-    ];
+    const container = document.getElementById("productosDisponibles");
+    if (!container) return;
 
-    this.renderProductos();
+    container.innerHTML = '<p class="loading">Cargando productos...</p>';
+
+    try {
+      const result = await ipcRenderer.invoke("get-productos");
+
+      if (result.success) {
+        this.productos = result.productos.filter(p => p.stock > 0);
+        this.renderProductos();
+      } else {
+        container.innerHTML = '<p class="loading">Error al cargar productos</p>';
+      }
+    } catch (error) {
+      console.error("Error cargando productos:", error);
+      container.innerHTML = '<p class="loading">Error al cargar productos</p>';
+    }
   }
 
   renderProductos(productosToShow = this.productos) {
@@ -113,27 +119,22 @@ class VentasManager {
 
     if (productosToShow.length === 0) {
       container.innerHTML =
-        '<p class="loading">No se encontraron productos</p>';
+        '<p class="loading">No hay productos disponibles con stock</p>';
       return;
     }
 
     const html = productosToShow
       .map(
         (producto) => `
-            <div class="producto-item" data-id="${producto.id}">
+            <div class="producto-item" onclick="ventasManager.agregarAlCarrito(${producto.id_producto})">
                 <div class="producto-info">
                     <h4>${producto.nombre}</h4>
-                    <p class="producto-precio">$${producto.precio}</p>
-                    <p class="producto-stock ${
-                      producto.stock < 10 ? "low" : ""
-                    } ${producto.stock === 0 ? "out" : ""}">
+                    <p class="producto-precio">$${parseFloat(producto.precio).toFixed(2)}</p>
+                    <p class="producto-stock ${producto.stock < 10 ? "low" : ""}">
                         Stock: ${producto.stock}
                     </p>
                 </div>
-                <button class="btn btn-primary" onclick="ventasManager.agregarAlCarrito(${
-                  producto.id
-                })" 
-                        ${producto.stock === 0 ? "disabled" : ""}>
+                <button class="btn btn-primary" onclick="event.stopPropagation(); ventasManager.agregarAlCarrito(${producto.id_producto})">
                     Agregar
                 </button>
             </div>
@@ -152,19 +153,29 @@ class VentasManager {
   }
 
   agregarAlCarrito(productoId) {
-    const producto = this.productos.find((p) => p.id === productoId);
-    if (!producto || producto.stock === 0) return;
+    const producto = this.productos.find((p) => p.id_producto === productoId);
+    if (!producto || producto.stock === 0) {
+      this.mostrarError("Producto sin stock disponible");
+      return;
+    }
 
     const itemExistente = this.carrito.find((item) => item.id === productoId);
 
     if (itemExistente) {
+      // Verificar que no se exceda el stock disponible
       if (itemExistente.cantidad < producto.stock) {
         itemExistente.cantidad++;
+      } else {
+        this.mostrarError(`Stock máximo disponible: ${producto.stock}`);
+        return;
       }
     } else {
       this.carrito.push({
-        ...producto,
+        id: producto.id_producto,
+        nombre: producto.nombre,
+        precio: parseFloat(producto.precio),
         cantidad: 1,
+        stock: producto.stock
       });
     }
 
@@ -193,7 +204,7 @@ class VentasManager {
             <div class="carrito-item">
                 <div class="item-info">
                     <h5>${item.nombre}</h5>
-                    <p class="item-precio">$${item.precio} c/u</p>
+                    <p class="item-precio">$${item.precio.toFixed(2)} c/u</p>
                 </div>
                 <div class="item-controls">
                     <button class="quantity-btn" onclick="ventasManager.cambiarCantidad(${item.id}, -1)">-</button>
@@ -215,10 +226,19 @@ class VentasManager {
     if (!item) return;
 
     const nuevaCantidad = item.cantidad + cambio;
-    if (nuevaCantidad > 0 && nuevaCantidad <= item.stock) {
-      item.cantidad = nuevaCantidad;
-      this.updateCarrito();
+    
+    if (nuevaCantidad <= 0) {
+      this.removerDelCarrito(productoId);
+      return;
     }
+    
+    if (nuevaCantidad > item.stock) {
+      this.mostrarError(`Stock máximo disponible: ${item.stock}`);
+      return;
+    }
+    
+    item.cantidad = nuevaCantidad;
+    this.updateCarrito();
   }
 
   setCantidad(productoId, cantidad) {
@@ -226,10 +246,19 @@ class VentasManager {
     if (!item) return;
 
     const nuevaCantidad = parseInt(cantidad);
-    if (nuevaCantidad > 0 && nuevaCantidad <= item.stock) {
-      item.cantidad = nuevaCantidad;
-      this.updateCarrito();
+    
+    if (isNaN(nuevaCantidad) || nuevaCantidad <= 0) {
+      this.removerDelCarrito(productoId);
+      return;
     }
+    
+    if (nuevaCantidad > item.stock) {
+      this.mostrarError(`Stock máximo disponible: ${item.stock}`);
+      return;
+    }
+    
+    item.cantidad = nuevaCantidad;
+    this.updateCarrito();
   }
 
   removerDelCarrito(productoId) {
@@ -238,8 +267,12 @@ class VentasManager {
   }
 
   limpiarCarrito() {
-    this.carrito = [];
-    this.updateCarrito();
+    if (this.carrito.length === 0) return;
+
+    if (confirm("¿Estás seguro de que deseas limpiar el carrito?")) {
+      this.carrito = [];
+      this.updateCarrito();
+    }
   }
 
   updateTotales() {
@@ -247,7 +280,7 @@ class VentasManager {
       (sum, item) => sum + item.precio * item.cantidad,
       0
     );
-    const total = subtotal; // Por ahora sin impuestos
+    const total = subtotal;
 
     const subtotalElement = document.getElementById("subtotal");
     const totalElement = document.getElementById("total");
@@ -267,14 +300,62 @@ class VentasManager {
     }
   }
 
-  abrirModalConfirmacion() {
-    // Por ahora, confirmación simple
+  async procesarVenta() {
+    if (this.carrito.length === 0) {
+      this.mostrarError("El carrito está vacío");
+      return;
+    }
+
     const total = this.carrito.reduce(
       (sum, item) => sum + item.precio * item.cantidad,
       0
     );
-    console.log("Procesar venta por:", total);
-    alert(`Funcionalidad en desarrollo. Total: $${total.toFixed(2)}`);
+
+    const confirmado = await ipcRenderer.invoke("show-confirmation", {
+      title: "Confirmar Venta",
+      message: `¿Confirmar venta por un total de $${total.toFixed(2)}?\n\nProductos: ${this.carrito.length}\nTotal: $${total.toFixed(2)}`
+    });
+
+    if (!confirmado) return;
+
+    // Deshabilitar botón mientras se procesa
+    const procesarBtn = document.getElementById("procesarVenta");
+    if (procesarBtn) {
+      procesarBtn.disabled = true;
+      procesarBtn.textContent = "Procesando...";
+    }
+
+    try {
+      const ventaData = {
+        carrito: this.carrito,
+        total: total
+      };
+
+      const result = await ipcRenderer.invoke("procesar-venta", ventaData);
+
+      if (result.success) {
+        await ipcRenderer.invoke("show-info", {
+          title: "Venta Exitosa",
+          message: `Venta procesada correctamente\n\nTicket #${result.id_venta}\nTotal: $${result.total.toFixed(2)}`
+        });
+
+        // Limpiar carrito y recargar productos
+        this.carrito = [];
+        this.updateCarrito();
+        await this.loadProductos();
+      } else {
+        this.mostrarError(result.message || "Error al procesar la venta");
+      }
+    } catch (error) {
+      console.error("Error procesando venta:", error);
+      this.mostrarError("Error al procesar la venta");
+    } finally {
+      // Restaurar botón
+      if (procesarBtn) {
+        procesarBtn.disabled = false;
+        procesarBtn.textContent = "Procesar Venta";
+      }
+    }
   }
 
   async navigateToPage(page) {
@@ -293,19 +374,22 @@ class VentasManager {
 
     if (confirmed) {
       try {
-        // Limpiar carrito y datos locales
         this.carrito = [];
         this.currentUser = null;
-
-        // Llamar al logout en el proceso principal
         await ipcRenderer.invoke("logout");
-
-        console.log("Logout exitoso desde ventas");
       } catch (error) {
         console.error("Error durante logout:", error);
         await ipcRenderer.invoke("navigate-to", "login");
       }
     }
+  }
+
+  mostrarError(mensaje) {
+    alert("Error: " + mensaje);
+  }
+
+  mostrarExito(mensaje) {
+    alert(mensaje);
   }
 }
 

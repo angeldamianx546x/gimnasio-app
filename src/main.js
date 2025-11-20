@@ -408,6 +408,63 @@ ipcMain.handle("eliminar-socio", async (event, idSocio) => {
 });
 
 // ============================================================
+// HANDLERS IPC - Ventas
+// ============================================================
+
+const VentasService = require("./utils/ventas");
+
+ipcMain.handle("procesar-venta", async (event, ventaData) => {
+  try {
+    if (!currentUser) {
+      return { success: false, message: "No hay usuario autenticado" };
+    }
+    return await VentasService.procesarVenta(ventaData, currentUser.id);
+  } catch (error) {
+    console.error("Error al procesar venta:", error);
+    return { success: false, message: "Error al procesar venta" };
+  }
+});
+
+ipcMain.handle("get-historial-ventas", async (event, fechaInicio, fechaFin) => {
+  try {
+    return await VentasService.getHistorialVentas(fechaInicio, fechaFin);
+  } catch (error) {
+    console.error("Error al obtener historial de ventas:", error);
+    return { success: false, message: "Error al cargar historial" };
+  }
+});
+
+ipcMain.handle("get-detalle-venta", async (event, idVenta) => {
+  try {
+    return await VentasService.getDetalleVenta(idVenta);
+  } catch (error) {
+    console.error("Error al obtener detalle de venta:", error);
+    return { success: false, message: "Error al cargar detalle" };
+  }
+});
+
+ipcMain.handle("get-estadisticas-ventas", async () => {
+  try {
+    return await VentasService.getEstadisticasVentas();
+  } catch (error) {
+    console.error("Error al obtener estadísticas de ventas:", error);
+    return { success: false, message: "Error al obtener estadísticas" };
+  }
+});
+
+ipcMain.handle("cancelar-venta", async (event, idVenta) => {
+  try {
+    if (!currentUser) {
+      return { success: false, message: "No hay usuario autenticado" };
+    }
+    return await VentasService.cancelarVenta(idVenta, currentUser.id);
+  } catch (error) {
+    console.error("Error al cancelar venta:", error);
+    return { success: false, message: "Error al cancelar venta" };
+  }
+});
+
+// ============================================================
 // HANDLERS IPC - Ventanas y Diálogos
 // ============================================================
 

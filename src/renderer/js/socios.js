@@ -895,4 +895,3 @@ class SociosManager {
 document.addEventListener("DOMContentLoaded", () => {
   new SociosManager();
 });
-
