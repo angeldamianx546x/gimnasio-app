@@ -505,5 +505,95 @@ process.on("uncaughtException", (error) => {
   );
 });
 
+// ============================================================
+// HANDLERS IPC - Dashboard (Agregar al main.js)
+// ============================================================
+
+// Obtener ventas del día
+ipcMain.handle("get-ventas-hoy", async () => {
+  try {
+    const pool = require("../config/database").getPool();
+    
+    const [rows] = await pool.query(`
+      SELECT COALESCE(SUM(total), 0) as total
+      FROM ventas
+      WHERE DATE(fecha) = CURDATE()
+    `);
+    
+    return {
+      success: true,
+      total: parseFloat(rows[0].total)
+    };
+  } catch (error) {
+    console.error("Error al obtener ventas del día:", error);
+    return { success: false, total: 0 };
+  }
+});
+
+// Obtener accesos del día
+ipcMain.handle("get-accesos-hoy", async () => {
+  try {
+    const pool = require("../config/database").getPool();
+    
+    const [rows] = await pool.query(`
+      SELECT COUNT(*) as total
+      FROM asistencias
+      WHERE DATE(fecha) = CURDATE()
+    `);
+    
+    return {
+      success: true,
+      total: parseInt(rows[0].total)
+    };
+  } catch (error) {
+    console.error("Error al obtener accesos del día:", error);
+    return { success: false, total: 0 };
+  }
+});
+
+// Obtener historial de actividades con filtro de periodo
+ipcMain.handle("get-historial-actividades", async (event, periodo) => {
+  try {
+    const pool = require("../config/database").getPool();
+    
+    let whereClause = "";
+    switch(periodo) {
+      case 'hoy':
+        whereClause = "WHERE DATE(h.fecha) = CURDATE()";
+        break;
+      case 'semana':
+        whereClause = "WHERE h.fecha >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)";
+        break;
+      case 'mes':
+        whereClause = "WHERE h.fecha >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)";
+        break;
+      default:
+        whereClause = "WHERE DATE(h.fecha) = CURDATE()";
+    }
+    
+    const [rows] = await pool.query(`
+      SELECT 
+        h.id_historial,
+        h.accion,
+        h.descripcion,
+        h.fecha,
+        u.nombre as usuario
+      FROM historial_actividades h
+      LEFT JOIN usuarios u ON h.id_usuario = u.id_usuario
+      ${whereClause}
+      ORDER BY h.fecha DESC
+      LIMIT 50
+    `);
+    
+    return {
+      success: true,
+      actividades: rows
+    };
+  } catch (error) {
+    console.error("Error al obtener historial de actividades:", error);
+    return { success: false, actividades: [] };
+  }
+});
+
 console.log("Aplicación Gimnasio iniciada correctamente");
 console.log("Estado de BD:", isDbConnected ? "Conectado" : "Desconectado");

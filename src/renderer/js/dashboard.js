@@ -1,4 +1,4 @@
-// Sistema de dashboard
+// src/renderer/js/dashboard.js
 const { ipcRenderer } = require("electron");
 
 class DashboardManager {
@@ -10,6 +10,7 @@ class DashboardManager {
       productosStock: 0,
       accesosHoy: 0,
     };
+    this.periodoHistorial = 'hoy'; // 'hoy', 'semana', 'mes'
     this.init();
   }
 
@@ -17,8 +18,8 @@ class DashboardManager {
     await this.loadUserData();
     this.bindEvents();
     this.updateUserInterface();
-    this.loadStats();
-    this.loadRecentActivity();
+    await this.loadRealStats();
+    await this.loadRecentActivity();
   }
 
   async loadUserData() {
@@ -58,10 +59,47 @@ class DashboardManager {
       });
     }
 
+    // Filtros de historial
+    this.bindHistorialFilters();
+
     // Refrescar stats cada 30 segundos
     setInterval(() => {
-      this.loadStats();
+      this.loadRealStats();
+      this.loadRecentActivity();
     }, 30000);
+  }
+
+  bindHistorialFilters() {
+    // Agregar botones de filtro si no existen
+    const activityHeader = document.querySelector('.recent-activity h2');
+    if (activityHeader && !document.getElementById('filterButtons')) {
+      const filterDiv = document.createElement('div');
+      filterDiv.id = 'filterButtons';
+      filterDiv.style.cssText = 'display: flex; gap: 0.5rem; margin-left: auto;';
+      filterDiv.innerHTML = `
+        <button class="filter-btn active" data-periodo="hoy">Hoy</button>
+        <button class="filter-btn" data-periodo="semana">Semana</button>
+        <button class="filter-btn" data-periodo="mes">Mes</button>
+      `;
+      
+      activityHeader.parentElement.style.display = 'flex';
+      activityHeader.parentElement.style.justifyContent = 'space-between';
+      activityHeader.parentElement.style.alignItems = 'center';
+      activityHeader.parentElement.appendChild(filterDiv);
+
+      // Event listeners para los filtros
+      filterDiv.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          // Actualizar botón activo
+          filterDiv.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          
+          // Cambiar periodo y recargar
+          this.periodoHistorial = btn.dataset.periodo;
+          await this.loadRecentActivity();
+        });
+      });
+    }
   }
 
   updateUserInterface() {
@@ -95,20 +133,38 @@ class DashboardManager {
     }
   }
 
-  async loadStats() {
+  async loadRealStats() {
     // Mostrar estado de carga
     this.showStatsLoading();
 
     try {
-      // Simular carga de estadísticas
-      // En el futuro, estas vendrán de la base de datos
-      await this.delay(800);
+      // Obtener estadísticas reales de la base de datos
+      const [ventasResult, sociosResult, productosResult, accesosResult] = await Promise.all([
+        ipcRenderer.invoke("get-ventas-hoy"),
+        ipcRenderer.invoke("get-estadisticas-socios"),
+        ipcRenderer.invoke("get-productos"),
+        ipcRenderer.invoke("get-accesos-hoy")
+      ]);
+
+      // Ventas del día
+      const ventasHoy = ventasResult.success ? ventasResult.total : 0;
+
+      // Socios activos
+      const sociosActivos = sociosResult.success ? sociosResult.estadisticas.activos : 0;
+
+      // Productos en stock (productos con stock > 0)
+      const productosStock = productosResult.success 
+        ? productosResult.productos.filter(p => p.stock > 0).length 
+        : 0;
+
+      // Accesos del día
+      const accesosHoy = accesosResult.success ? accesosResult.total : 0;
 
       this.stats = {
-        ventasHoy: this.generateRandomStat(500, 2000, "$"),
-        clientesActivos: this.generateRandomStat(50, 200),
-        productosStock: this.generateRandomStat(20, 100),
-        accesosHoy: this.generateRandomStat(30, 150),
+        ventasHoy: `$${ventasHoy.toFixed(2)}`,
+        clientesActivos: sociosActivos,
+        productosStock: productosStock,
+        accesosHoy: accesosHoy,
       };
 
       this.updateStatsDisplay();
@@ -140,30 +196,31 @@ class DashboardManager {
 
     element.classList.remove("loading");
 
-    // Animación de conteo
+    // Si es un valor monetario, mostrarlo directamente
+    if (typeof value === "string" && value.startsWith("$")) {
+      element.textContent = value;
+      return;
+    }
+
+    // Animación de conteo para números
     let startValue = 0;
-    const endValue =
-      typeof value === "string" ? parseInt(value.replace(/[^\d]/g, "")) : value;
-    const prefix = typeof value === "string" && value.includes("$") ? "$" : "";
+    const endValue = typeof value === "string" 
+      ? parseInt(value.replace(/[^\d]/g, "")) 
+      : value;
     const duration = 1000;
     const increment = endValue / (duration / 16);
 
     const animate = () => {
       startValue += increment;
       if (startValue < endValue) {
-        element.textContent = prefix + Math.floor(startValue).toLocaleString();
+        element.textContent = Math.floor(startValue).toLocaleString();
         requestAnimationFrame(animate);
       } else {
-        element.textContent = prefix + endValue.toLocaleString();
+        element.textContent = endValue.toLocaleString();
       }
     };
 
     animate();
-  }
-
-  generateRandomStat(min, max, prefix = "") {
-    const value = Math.floor(Math.random() * (max - min + 1)) + min;
-    return prefix + value.toLocaleString();
   }
 
   async loadRecentActivity() {
@@ -171,60 +228,102 @@ class DashboardManager {
     if (!activityList) return;
 
     try {
-      // Simular actividad reciente
-      const activities = [
-        {
-          title: "Venta registrada",
-          description: "Proteína Whey - $450",
-          time: "2 min ago",
-        },
-        {
-          title: "Cliente registrado",
-          description: "Ana López - Suscripción mensual",
-          time: "15 min ago",
-        },
-        {
-          title: "Acceso autorizado",
-          description: "Carlos Ruiz - Entrada al gimnasio",
-          time: "23 min ago",
-        },
-        {
-          title: "Inventario actualizado",
-          description: "Creatina - Stock repuesto",
-          time: "1 hora ago",
-        },
-      ];
+      // Mostrar estado de carga
+      activityList.innerHTML = '<p class="loading">Cargando actividad...</p>';
 
-      this.renderActivityList(activities);
+      // Obtener historial real de la base de datos
+      const result = await ipcRenderer.invoke("get-historial-actividades", this.periodoHistorial);
+
+      if (result.success && result.actividades.length > 0) {
+        this.renderActivityList(result.actividades);
+      } else {
+        activityList.innerHTML = `
+          <p class="no-activity">
+            No hay actividad registrada ${this.getPeriodoTexto()}
+          </p>
+        `;
+      }
     } catch (error) {
       console.error("Error cargando actividad:", error);
+      activityList.innerHTML = '<p class="no-activity">Error al cargar actividad</p>';
     }
   }
 
-  renderActivityList(activities) {
+  getPeriodoTexto() {
+    switch(this.periodoHistorial) {
+      case 'hoy': return 'hoy';
+      case 'semana': return 'en esta semana';
+      case 'mes': return 'en este mes';
+      default: return '';
+    }
+  }
+
+  renderActivityList(actividades) {
     const activityList = document.getElementById("activityList");
 
-    if (activities.length === 0) {
-      activityList.innerHTML =
-        '<p class="no-activity">No hay actividad reciente</p>';
+    if (actividades.length === 0) {
+      activityList.innerHTML = '<p class="no-activity">No hay actividad reciente</p>';
       return;
     }
 
-    const html = activities
-      .map(
-        (activity) => `
-            <div class="activity-item">
-                <div class="activity-info">
-                    <div class="activity-title">${activity.title}</div>
-                    <div class="activity-description">${activity.description}</div>
-                </div>
-                <div class="activity-time">${activity.time}</div>
+    const html = actividades
+      .map((activity) => {
+        const fecha = new Date(activity.fecha);
+        const timeAgo = this.getTimeAgo(fecha);
+        const icon = this.getActivityIcon(activity.accion);
+
+        return `
+          <div class="activity-item">
+            <div class="activity-icon">${icon}</div>
+            <div class="activity-info">
+              <div class="activity-title">${activity.accion}</div>
+              <div class="activity-description">${activity.descripcion}</div>
+              <div class="activity-user">Por: ${activity.usuario || 'Sistema'}</div>
             </div>
-        `
-      )
+            <div class="activity-time">${timeAgo}</div>
+          </div>
+        `;
+      })
       .join("");
 
     activityList.innerHTML = html;
+  }
+
+  getActivityIcon(accion) {
+    const iconMap = {
+      'Inicio de sesión': '🔐',
+      'Cierre de sesión': '🚪',
+      'Realizar venta': '💰',
+      'Agregar producto': '📦',
+      'Actualizar stock': '📊',
+      'Registrar socio': '👤',
+      'Registrar pago': '💳',
+      'Registrar asistencia': '✅',
+    };
+    
+    return iconMap[accion] || '📝';
+  }
+
+  getTimeAgo(fecha) {
+    const ahora = new Date();
+    const diff = ahora - fecha;
+    
+    const minutos = Math.floor(diff / 60000);
+    const horas = Math.floor(diff / 3600000);
+    const dias = Math.floor(diff / 86400000);
+
+    if (minutos < 1) return 'Justo ahora';
+    if (minutos < 60) return `Hace ${minutos} min`;
+    if (horas < 24) return `Hace ${horas} hora${horas > 1 ? 's' : ''}`;
+    if (dias === 1) return 'Ayer';
+    if (dias < 7) return `Hace ${dias} días`;
+    
+    return fecha.toLocaleDateString('es-ES', { 
+      day: '2-digit', 
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   }
 
   async handleQuickAction(action) {
@@ -241,14 +340,7 @@ class DashboardManager {
         await this.navigateToPage("acceso");
         break;
       case "inventario":
-        if (this.currentUser.tipo === "jefe") {
           await this.navigateToPage("productos");
-        } else {
-          await ipcRenderer.invoke(
-            "show-error",
-            "No tienes permisos para acceder al inventario"
-          );
-        }
         break;
       default:
         console.log("Acción no implementada:", action);
